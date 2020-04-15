@@ -36,7 +36,7 @@ while (my $fline = <$fh>)
     # parse_dates(\$line, \@dates);
     parse_attachments(\$line, \@attachments);
     parse_websites(\$line, \@websites);
-    # parse_links(\$line, \@links);
+    parse_links(\$line, \@links);
   }
 
   close $fi;
@@ -46,6 +46,7 @@ while (my $fline = <$fh>)
 
   print_list(\@attachments, "Attachments");
   print_count_list(\@websites, "Websites");
+  print_list(\@links, "Links");
 
 }
 
@@ -81,10 +82,16 @@ sub parse_attachments
 {
   my ($line_ref, $list_ref) = @_;
 
-  if ($$line_ref =~ /\[\[attachment:([^]]*)\]\]/)
+  my @a = split /\[\[/, $$line_ref;
+  return unless $#a > 0;
+
+  for my $e (@a)
   {
-    my @a = split /\|/, $1;
-    push @$list_ref, $a[0];
+    if ($e =~ /^attachment:([^]]*)\]\]/)
+    {
+      my @b = split /\|/, $1;
+      push @$list_ref, $b[0];
+    }
   }
 }
 
@@ -93,10 +100,6 @@ sub parse_websites
 {
   my ($line_ref, $list_ref) = @_;
 
-if ($$line_ref =~ /716/)
-{
-  print "HERE\n";
-}
   my @a = split /[,;|\s\xa0]+/, $$line_ref;
   for my $e (@a)
   {
@@ -107,6 +110,7 @@ if ($$line_ref =~ /716/)
       next if $e =~ /facebook/i;
       next if $e =~ /linkedin/i;
       next if $e =~ /twitter/i;
+      next if $e =~ /www.mig.ag/i;
       push @$list_ref, $e;
     }
   }
@@ -116,6 +120,19 @@ if ($$line_ref =~ /716/)
 sub parse_links
 {
   my ($line_ref, $list_ref) = @_;
+
+  my @a = split /\[\[/, $$line_ref;
+  return unless $#a > 0;
+
+  for my $e (@a)
+  {
+    next if $e =~ /^attachment:/;
+    if ($e =~ /([^]]*)\]\]/)
+    {
+      my @b = split /\|/, $1;
+      push @$list_ref, $b[0];
+    }
+  }
 }
 
 
