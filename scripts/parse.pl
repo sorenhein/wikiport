@@ -37,8 +37,8 @@ while (my $fline = <$fh>)
     $line =~ s///g;
 
     parse_mails_from(\$line, \@mails_from);
-    # parse_mails_to(\$line, \@mails_from);
-    # parse_mails(\$line, \@mails_from);
+    parse_mails_to(\$line, \@mails_to);
+    parse_mails(\$line, \@mails);
     # parse_dates(\$line, \@dates);
     parse_attachments(\$line, \@attachments);
     parse_websites(\$line, \@websites);
@@ -51,7 +51,8 @@ while (my $fline = <$fh>)
   print "=" x length($fline), "\n\n";
 
   print_count_list(\@mails_from, "Mails from");
-  # print_count_list(\@mails_to, "Mails to");
+  print_count_list(\@mails_to, "Mails to");
+  print_count_list(\@mails, "Mails in text");
 
   print_list(\@attachments, "Attachments");
   print_count_list(\@websites, "Websites");
@@ -67,13 +68,18 @@ sub set_MIG_names
 {
   my $nref = pop;
 
-  $nref->{"Thierauf, Axel"}  = "MIG: AT";
-  $nref->{"Dr. Klaus Feix"}  = "MIG: KF";
-  $nref->{"Kosch, Juergen"}  = "MIG: JK";
-  $nref->{"Betz, Maria"}     = "MIG: MBe";
-  $nref->{"Stadler, Monika"} = "MIG: MSt";
-  $nref->{"Sören Hein"}      = "MIG: SH";
-  $nref->{"Hein, Sören"}     = "MIG: SH";
+  $nref->{"Axel Thierauf"}      = "MIG: AT";
+  $nref->{"Thierauf, Axel"}     = "MIG: AT";
+  $nref->{"Dr. Klaus Feix"}     = "MIG: KF";
+  $nref->{"Klaus Feix"}         = "MIG: KF";
+  $nref->{"JürgenKosch"}        = "MIG: JK";
+  $nref->{"Kosch, Juergen"}     = "MIG: JK";
+  $nref->{"Betz, Maria"}        = "MIG: MBe";
+  $nref->{"Michael Motschmann"} = "MIG: MM";
+  $nref->{"Stadler, Monika"}    = "MIG: MSt";
+  $nref->{"Sören Hein"}         = "MIG: SH";
+  $nref->{"Hein, Sören"}        = "MIG: SH";
+  $nref->{"Hein, SÃ¶ren"}       = "MIG: SH";
 }
 
 
@@ -83,11 +89,14 @@ sub set_MIG_mails
 
   $nref->{'at@mig.ag'}                = "MIG: AT";
   $nref->{'jk@mig.ag'}                = "MIG: JK";
+  $nref->{'jk@hs984.hostedoffice.ag'} = "MIG: JK";
   $nref->{'kf@mig.ag'}                = "MIG: KF";
   $nref->{'kf@hs984.hostedoffice.ag'} = "MIG: KF";
   $nref->{'mbe@mig.ag'}               = "MIG: MBe";
+  $nref->{'mm@mig.ag'}                = "MIG: MM";
   $nref->{'mst@mig.ag'}               = "MIG: MSt";
   $nref->{'sh@mig.ag'}                = "MIG: SH";
+  $nref->{'sh@hs984.hostedoffice.ag'} = "MIG: SH";
 }
 
 
@@ -127,30 +136,56 @@ sub parse_mail
   my $mail = "";
   if ($line =~ /^\s*(.*)\s+\[mailto:(.*)\]\s*$/)
   {
+    # Sören Hein [mailto:sh@mig.ag]
     $name = $1;
     $mail = $2;
   }
+  elsif ($line =~ /^\s*(.*)\s+\((.*)\)\s+<(.*)>\s*$/)
+  {
+    # Sören Hein (sh@mig.ag) <sh@mig.ag>
+    # Sören Hein (mailto:sh@mig.ag) <mailto:sh@mig.ag>
+    if ($2 eq $3)
+    {
+      $name = $1;
+      $mail = $2;
+      $mail = $1 if $mail =~ /^mailto:(.*)/;
+    }
+  }
   elsif ($line =~ /^\s*(.*)\s+<mailto:(.*)>\s*$/)
   {
+    # Sören Hein <mailto:sh@mig.ag>
     $name = $1;
     $mail = $2;
   }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s*$/)
   {
+    # Sören Hein <sh@mig.ag>
     $name = $1;
     $mail = $2;
   }
+  elsif ($line =~ /^\s*mailto:(.*)\s*$/)
+  {
+    # mailto:sh@mig.ag
+    $mail = $1;
+  }
   else
   {
-    $name = $1;
+    $name = $line;
+    $name =~ s/^\s+//;
   }
 
-  if ($name =~ /^"(.*)"$/)
+  if ($name =~ /^"(.*)"$/ || $name =~ /^'(.*)'$/)
   {
     $name = $1;
   }
 
   return if $name eq "" && $mail eq "";
+
+  if ($mail eq "" && $name =~ /@/)
+  {
+    $mail = $name;
+    $name = "";
+  }
 
   $name = parse_MIG_name($name) if $name ne "";
   $mail = parse_MIG_mail($mail) if $mail ne "";
@@ -164,6 +199,10 @@ sub parse_mail
   if ($mail eq "")
   {
     $res = $name;
+  }
+  elsif ($name eq "")
+  {
+    $res = $mail;
   }
   else
   {
@@ -180,7 +219,7 @@ sub clean_line
 
   $line =~ s/^\s+//;
   $line =~ s/\s+$//;
-  $line =~ s/\xc2\xa0//g;
+  $line =~ s/\xc2\xa0/ /g;
 
   return $line;
 }
@@ -205,13 +244,12 @@ sub parse_mails_from
     my $field2 = $2;
     parse_mail($field1, $list_ref);
     parse_mail($field2, $list_ref);
-    $$line_ref = "";
   }
   else
   {
     parse_mail($field, $list_ref);
-    $$line_ref = "";
   }
+  $$line_ref = "";
 }
 
 
@@ -228,14 +266,42 @@ sub parse_mails_to
 
   return if $field eq "";
 
-  parse_mail($field, $list_ref);
-  $$line_ref = "";
+  # If there are semi-colons, we won't split on commas.
+  my @a = split /;/, $field;
+
+  if ($#a == 0)
+  {
+    # Only split on comma if there seem to be multiple mails.
+    my @t = split /\@/, $a[0];
+    @a = split /,/, $a[0] if $#t > 1;
+  }
+
+  my $found = 0;
+  for my $m (@a)
+  {
+    next if $m eq "";
+    $found = 1;
+    parse_mail($m, $list_ref);
+  }
+
+  $$line_ref = "" if $found;
 }
 
 
 sub parse_mails
 {
   my ($line_ref, $list_ref) = @_;
+
+  $$line_ref = clean_line($$line_ref);
+
+  # Only look for the actual mail with the @ symbol, not for the name.
+  my @a = split /[ ,;]+/, $$line_ref;
+
+  for my $m (@a)
+  {
+    next unless $m =~ /\@/;
+    parse_mail($m, $list_ref);
+  }
 }
 
 
