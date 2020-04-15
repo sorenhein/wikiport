@@ -39,10 +39,10 @@ while (my $fline = <$fh>)
     parse_mails_from(\$line, \@mails_from);
     parse_mails_to(\$line, \@mails_to);
     parse_mails(\$line, \@mails);
-    parse_dates(\$line, \@dates);
     parse_attachments(\$line, \@attachments);
     parse_websites(\$line, \@websites);
     parse_links(\$line, \@links);
+    parse_dates(\$line, \@dates);
   }
 
   close $fi;
@@ -60,6 +60,7 @@ while (my $fline = <$fh>)
   print_list(\@attachments, "Attachments");
   print_count_list(\@websites, "Websites");
   print_list(\@links, "Links");
+  print "\n\n";
 
 }
 
@@ -71,18 +72,30 @@ sub set_MIG_names
 {
   my $nref = pop;
 
-  $nref->{"Axel Thierauf"}      = "MIG: AT";
-  $nref->{"Thierauf, Axel"}     = "MIG: AT";
-  $nref->{"Dr. Klaus Feix"}     = "MIG: KF";
-  $nref->{"Klaus Feix"}         = "MIG: KF";
-  $nref->{"JürgenKosch"}        = "MIG: JK";
-  $nref->{"Kosch, Juergen"}     = "MIG: JK";
-  $nref->{"Betz, Maria"}        = "MIG: MBe";
-  $nref->{"Michael Motschmann"} = "MIG: MM";
-  $nref->{"Stadler, Monika"}    = "MIG: MSt";
-  $nref->{"Sören Hein"}         = "MIG: SH";
-  $nref->{"Hein, Sören"}        = "MIG: SH";
-  $nref->{"Hein, SÃ¶ren"}       = "MIG: SH";
+  $nref->{"Axel Thierauf"}           = "MIG: AT";
+  $nref->{"Thierauf, Axel"}          = "MIG: AT";
+  $nref->{"Steingruber-Dotterweich, Barbara"} = "MIG: BS";
+  $nref->{"Roebert, Doreen"}         = "MIG: DR";
+  $nref->{"Adam, Katharina"}         = "MIG: KA";
+  $nref->{"Katharina"}               = "MIG: KA";
+  $nref->{"JürgenKosch"}             = "MIG: JK";
+  $nref->{"Kosch, Juergen"}          = "MIG: JK";
+  $nref->{"Dr. Klaus Feix"}          = "MIG: KF";
+  $nref->{"Klaus Feix"}              = "MIG: KF";
+  $nref->{"Schmidt-Garve, Kristian"} = "MIG: KSG";
+  $nref->{"Betz, Maria"}             = "MIG: MBe";
+  $nref->{"Guth, Matthias"}          = "MIG: MG";
+  $nref->{"Kromayer, Matthias"}      = "MIG: MK";
+  $nref->{"Matthias Kromayer"}       = "MIG: MK";
+  $nref->{"Michael Motschmann"}      = "MIG: MM";
+  $nref->{"Stadler, Monika"}         = "MIG: MSt";
+  $nref->{"Kahl, Oliver"}            = "MIG: OK";
+  $nref->{"Sören Hein"}              = "MIG: SH";
+  $nref->{"Hein, Sören"}             = "MIG: SH";
+  $nref->{"Hein, SÃ¶ren"}            = "MIG: SH";
+  $nref->{"Mauer, Theresa"}          = "MIG: TM";
+
+  $nref->{"business plan"}           = "MIG: businessplan";
 }
 
 
@@ -92,16 +105,34 @@ sub set_MIG_mails
 
   $nref->{'at@mig.ag'}                 = "MIG: AT";
   $nref->{'at@hs984.hostedoffice.ag'}  = "MIG: AT";
+  $nref->{'bs@mig.ag'}                 = "MIG: BS";
+  $nref->{'dr@mig.ag'}                 = "MIG: DR";
   $nref->{'jk@mig.ag'}                 = "MIG: JK";
+  $nref->{'JK@mig.ag'}                 = "MIG: JK";
+  $nref->{'j.kosch@mig.ag'}            = "MIG: JK";
   $nref->{'jk@hs984.hostedoffice.ag'}  = "MIG: JK";
+  $nref->{'ka@mig.ag'}                 = "MIG: KA";
   $nref->{'kf@mig.ag'}                 = "MIG: KF";
   $nref->{'kf@hs984.hostedoffice.ag'}  = "MIG: KF";
+  $nref->{'ksg@mig.ag'}                = "MIG: KSG";
   $nref->{'ksg@hs984.hostedoffice.ag'} = "MIG: KSG";
+  $nref->{'kristian.schmidt-garve@mig.ag'} = "MIG: KSG";
   $nref->{'mbe@mig.ag'}                = "MIG: MBe";
+  $nref->{'mg@mig.ag'}                 = "MIG: MG";
+  $nref->{'mk@mig.ag'}                 = "MIG: MK";
+  $nref->{'matthias.kromayer@mig.ag'}  = "MIG: MK";
+  $nref->{'kromayer@mig.ag'}           = "MIG: MK";
   $nref->{'mm@mig.ag'}                 = "MIG: MM";
+  $nref->{'michael.motschmann@mig.ag'} = "MIG: MM";
+  $nref->{'ok@mig.ag'}                 = "MIG: OK";
   $nref->{'mst@mig.ag'}                = "MIG: MSt";
   $nref->{'sh@mig.ag'}                 = "MIG: SH";
+  $nref->{'soeren.hein@mig.ag'}        = "MIG: SH";
   $nref->{'sh@hs984.hostedoffice.ag'}  = "MIG: SH";
+  $nref->{'tm@mig.ag'}                 = "MIG: TM";
+
+  $nref->{'info@mig.ag'}               = "MIG: info";
+  $nref->{'businessplan@mig.ag'}       = "MIG: businessplan";
 }
 
 
@@ -353,9 +384,12 @@ sub parse_date
 print "WHAT? .$line.\n";
   }
 
+  return if ($day <= 0 || $day > 31 || 
+    $month <= 0 || $month > 12 || 
+    $year < 2000);
+
   my $date = $year . '-' . $month . "-" . $day;
   push @$list_ref, $date;
-print "DONE .$date.\n";
 
 }
 
@@ -399,6 +433,8 @@ sub parse_attachments
       push @$list_ref, $b[0];
     }
   }
+
+  $$line_ref =~ s/\[\[[^]]*\]\]//g;
 }
 
 
@@ -439,6 +475,7 @@ sub parse_links
       push @$list_ref, $b[0];
     }
   }
+  $$line_ref =~ s/\[\[[^]]*\]\]//g;
 }
 
 
@@ -470,6 +507,11 @@ sub print_date_range
 
   $d[0] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
   my ($y1, $m1, $d1) = ($1, $2, $3);
+
+if (! defined $y1)
+{
+  print "HERE\n";
+}
 
   $d[$#d] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
   my ($y2, $m2, $d2) = ($1, $2, $3);
