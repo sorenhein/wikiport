@@ -39,7 +39,7 @@ while (my $fline = <$fh>)
     parse_mails_from(\$line, \@mails_from);
     parse_mails_to(\$line, \@mails_to);
     parse_mails(\$line, \@mails);
-    # parse_dates(\$line, \@dates);
+    parse_dates(\$line, \@dates);
     parse_attachments(\$line, \@attachments);
     parse_websites(\$line, \@websites);
     parse_links(\$line, \@links);
@@ -53,6 +53,9 @@ while (my $fline = <$fh>)
   print_count_list(\@mails_from, "Mails from");
   print_count_list(\@mails_to, "Mails to");
   print_count_list(\@mails, "Mails in text");
+
+  print_list(\@dates, "Dates");
+  print_date_range(\@dates);
 
   print_list(\@attachments, "Attachments");
   print_count_list(\@websites, "Websites");
@@ -87,16 +90,18 @@ sub set_MIG_mails
 {
   my $nref = pop;
 
-  $nref->{'at@mig.ag'}                = "MIG: AT";
-  $nref->{'jk@mig.ag'}                = "MIG: JK";
-  $nref->{'jk@hs984.hostedoffice.ag'} = "MIG: JK";
-  $nref->{'kf@mig.ag'}                = "MIG: KF";
-  $nref->{'kf@hs984.hostedoffice.ag'} = "MIG: KF";
-  $nref->{'mbe@mig.ag'}               = "MIG: MBe";
-  $nref->{'mm@mig.ag'}                = "MIG: MM";
-  $nref->{'mst@mig.ag'}               = "MIG: MSt";
-  $nref->{'sh@mig.ag'}                = "MIG: SH";
-  $nref->{'sh@hs984.hostedoffice.ag'} = "MIG: SH";
+  $nref->{'at@mig.ag'}                 = "MIG: AT";
+  $nref->{'at@hs984.hostedoffice.ag'}  = "MIG: AT";
+  $nref->{'jk@mig.ag'}                 = "MIG: JK";
+  $nref->{'jk@hs984.hostedoffice.ag'}  = "MIG: JK";
+  $nref->{'kf@mig.ag'}                 = "MIG: KF";
+  $nref->{'kf@hs984.hostedoffice.ag'}  = "MIG: KF";
+  $nref->{'ksg@hs984.hostedoffice.ag'} = "MIG: KSG";
+  $nref->{'mbe@mig.ag'}                = "MIG: MBe";
+  $nref->{'mm@mig.ag'}                 = "MIG: MM";
+  $nref->{'mst@mig.ag'}                = "MIG: MSt";
+  $nref->{'sh@mig.ag'}                 = "MIG: SH";
+  $nref->{'sh@hs984.hostedoffice.ag'}  = "MIG: SH";
 }
 
 
@@ -162,6 +167,20 @@ sub parse_mail
     # Sören Hein <sh@mig.ag>
     $name = $1;
     $mail = $2;
+  }
+  elsif ($line =~ /^\s*<(.*)>$/)
+  {
+    # <sh@mig.ag>
+    # <mailto:sh@mig.ag>
+    $mail = $1;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
+  elsif ($line =~ /^\s*\((.*)\)/)
+  {
+    # (sh@mig.ag)
+    # (mailto:sh@mig.ag)
+    $mail = $1;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
   }
   elsif ($line =~ /^\s*mailto:(.*)\s*$/)
   {
@@ -305,9 +324,63 @@ sub parse_mails
 }
 
 
+sub parse_date
+{
+  my ($line, $list_ref) = @_;
+
+  my ($weekday, $day, $month, $year);
+  if ($line =~ /(\w+tag), (\d+)\. (\w+) (\d+)\s+/)
+  {
+    $day = $2;
+    $month = $3;
+    $year = $4;
+  }
+  elsif ($line =~ /(\d\d\d\d)\/(\d\d)\/(\d\d)/)
+  {
+    $day = $3;
+    $month = $2;
+    $year = $1;
+  }
+  elsif ($line =~ /(\d?\d)\.(\d\d)\.(\d\d\d?\d?)/)
+  {
+    $day = $1;
+    $month = $2;
+    $year = $3;
+    $year += 2000 if $year < 100;
+  }
+  else
+  {
+print "WHAT? .$line.\n";
+  }
+
+  my $date = $year . '-' . $month . "-" . $day;
+  push @$list_ref, $date;
+print "DONE .$date.\n";
+
+}
+
+
 sub parse_dates
 {
   my ($line_ref, $list_ref) = @_;
+
+  $$line_ref = clean_line($$line_ref);
+
+  my $field = "";
+  $field = $1 if $$line_ref =~ /^Gesendet:\s+(.*)$/;
+  $field = $1 if $$line_ref =~ /^Datum:\s+(.*)$/;
+  $field = $1 if $$line_ref =~ /^Sent:\s+(.*)$/;
+  $field = $1 if $$line_ref =~ /^Date:\s+(.*)$/;
+
+  if ($field eq "")
+  {
+    if ($$line_ref =~ /(\d?\d\.\d\d\.\d\d\d?\d?)/)
+    {
+      $field = $1;
+    }
+    return if $field eq "";
+    parse_date($field, $list_ref);
+  }
 }
 
 
@@ -384,8 +457,26 @@ sub print_list
 
   print_sub_header($name);
 
-  print "$_\n" for @$list_ref;
+  print "$_\n" for sort @$list_ref;
   print "\n";
+}
+
+
+sub print_date_range
+{
+  my $dref = pop;
+  my @d = sort @$dref;
+  return if $#d <= 0;
+
+  $d[0] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
+  my ($y1, $m1, $d1) = ($1, $2, $3);
+
+  $d[$#d] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
+  my ($y2, $m2, $d2) = ($1, $2, $3);
+
+  my $diff = 365 * ($y2-$y1) + 30 * ($m2-$m1) + ($d2-$d1);
+
+  print "Approx. $diff days in process\n\n";
 }
 
 
