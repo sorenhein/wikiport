@@ -74,26 +74,52 @@ sub set_MIG_names
 
   $nref->{"Axel Thierauf"}           = "MIG: AT";
   $nref->{"Thierauf, Axel"}          = "MIG: AT";
+  $nref->{"AT (intern)"}             = "MIG: AT";
+  $nref->{"Axel' 'Thierauf"}         = "MIG: AT";
+
   $nref->{"Steingruber-Dotterweich, Barbara"} = "MIG: BS";
+
   $nref->{"Roebert, Doreen"}         = "MIG: DR";
+
   $nref->{"Adam, Katharina"}         = "MIG: KA";
   $nref->{"Katharina"}               = "MIG: KA";
+
   $nref->{"JürgenKosch"}             = "MIG: JK";
+  $nref->{"Jürgen Kosch"}            = "MIG: JK";
+  $nref->{"Jürgen Kosch (E-Mail)"}   = "MIG: JK";
+  $nref->{"Jürgen Kosch/MIG Verwaltungs AG"} = "MIG: JK";
   $nref->{"Kosch, Juergen"}          = "MIG: JK";
+  $nref->{"JK (intern)"}             = "MIG: JK";
+
   $nref->{"Dr. Klaus Feix"}          = "MIG: KF";
   $nref->{"Klaus Feix"}              = "MIG: KF";
+
   $nref->{"Schmidt-Garve, Kristian"} = "MIG: KSG";
+
   $nref->{"Betz, Maria"}             = "MIG: MBe";
+
   $nref->{"Guth, Matthias"}          = "MIG: MG";
+
   $nref->{"Kromayer, Matthias"}      = "MIG: MK";
   $nref->{"Matthias Kromayer"}       = "MIG: MK";
+  $nref->{"Matthias Kromayer (extern)"} = "MIG: MK";
+  $nref->{"Dr. Kromayer (extern) Matthias"} = "MIG: MK";
+
   $nref->{"Michael Motschmann"}      = "MIG: MM";
+  $nref->{"Michael Motschmann - MIG AG Fond"} = "MIG: MM";
+
   $nref->{"Stadler, Monika"}         = "MIG: MSt";
+  $nref->{"MST Intern"}              = "MIG: MSt";
+
   $nref->{"Kahl, Oliver"}            = "MIG: OK";
+
   $nref->{"Sören Hein"}              = "MIG: SH";
   $nref->{"Hein, Sören"}             = "MIG: SH";
   $nref->{"Hein, SÃ¶ren"}            = "MIG: SH";
+
   $nref->{"Mauer, Theresa"}          = "MIG: TM";
+
+  $nref->{"Petermeier, Yasmin"}      = "MIG: YP";
 
   $nref->{"business plan"}           = "MIG: businessplan";
 }
@@ -104,35 +130,60 @@ sub set_MIG_mails
   my $nref = pop;
 
   $nref->{'at@mig.ag'}                 = "MIG: AT";
+  $nref->{'a@mig.ag'}                  = "MIG: AT";
   $nref->{'at@hs984.hostedoffice.ag'}  = "MIG: AT";
+
   $nref->{'bs@mig.ag'}                 = "MIG: BS";
+
   $nref->{'dr@mig.ag'}                 = "MIG: DR";
+
   $nref->{'jk@mig.ag'}                 = "MIG: JK";
   $nref->{'JK@mig.ag'}                 = "MIG: JK";
   $nref->{'j.kosch@mig.ag'}            = "MIG: JK";
   $nref->{'jk@hs984.hostedoffice.ag'}  = "MIG: JK";
+
   $nref->{'ka@mig.ag'}                 = "MIG: KA";
+
   $nref->{'kf@mig.ag'}                 = "MIG: KF";
   $nref->{'kf@hs984.hostedoffice.ag'}  = "MIG: KF";
+
   $nref->{'ksg@mig.ag'}                = "MIG: KSG";
   $nref->{'ksg@hs984.hostedoffice.ag'} = "MIG: KSG";
   $nref->{'kristian.schmidt-garve@mig.ag'} = "MIG: KSG";
+
   $nref->{'mbe@mig.ag'}                = "MIG: MBe";
+
   $nref->{'mg@mig.ag'}                 = "MIG: MG";
+  $nref->{'mg@hs984.hostedoffice.ag'}  = "MIG: MG";
+
   $nref->{'mk@mig.ag'}                 = "MIG: MK";
   $nref->{'matthias.kromayer@mig.ag'}  = "MIG: MK";
   $nref->{'kromayer@mig.ag'}           = "MIG: MK";
+
   $nref->{'mm@mig.ag'}                 = "MIG: MM";
   $nref->{'michael.motschmann@mig.ag'} = "MIG: MM";
+
   $nref->{'ok@mig.ag'}                 = "MIG: OK";
+
   $nref->{'mst@mig.ag'}                = "MIG: MSt";
+
   $nref->{'sh@mig.ag'}                 = "MIG: SH";
   $nref->{'soeren.hein@mig.ag'}        = "MIG: SH";
   $nref->{'sh@hs984.hostedoffice.ag'}  = "MIG: SH";
+
   $nref->{'tm@mig.ag'}                 = "MIG: TM";
 
+  $nref->{'yp@mig.ag'}                 = "MIG: YP";
+
   $nref->{'info@mig.ag'}               = "MIG: info";
+  $nref->{'Info@mig.ag'}               = "MIG: info";
+  $nref->{'fonds@mig.ag'}              = "MIG: fonds";
+  $nref->{'beteiligungsanfrage@mig.ag'}  = "MIG: businessplan";
+  $nref->{'Beteiligungsanfrage@mig.ag'}  = "MIG: businessplan";
+  $nref->{'Beteiligunmgsanfrage@mig.ag'} = "MIG: businessplan";
   $nref->{'businessplan@mig.ag'}       = "MIG: businessplan";
+  $nref->{'businessplan@mig.ag'}       = "MIG: businessplan";
+  $nref->{'wiki@mig.ag'}               = "MIG: wiki";
 }
 
 
@@ -170,13 +221,7 @@ sub parse_mail
 
   my $name = "";
   my $mail = "";
-  if ($line =~ /^\s*(.*)\s+\[mailto:(.*)\]\s*$/)
-  {
-    # Sören Hein [mailto:sh@mig.ag]
-    $name = $1;
-    $mail = $2;
-  }
-  elsif ($line =~ /^\s*(.*)\s+\((.*)\)\s+<(.*)>\s*$/)
+  if ($line =~ /^\s*(.*)\s+\((.*)\)\s+<(.*)>\s*$/)
   {
     # Sören Hein (sh@mig.ag) <sh@mig.ag>
     # Sören Hein (mailto:sh@mig.ag) <mailto:sh@mig.ag>
@@ -187,15 +232,89 @@ sub parse_mail
       $mail = $1 if $mail =~ /^mailto:(.*)/;
     }
   }
-  elsif ($line =~ /^\s*(.*)\s+<mailto:(.*)>\s*$/)
+  elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s+<(.*)>\s*$/)
   {
-    # Sören Hein <mailto:sh@mig.ag>
+    # 'Sören Hein (sh@mig.ag)' <sh@mig.ag>
+    # 'Sören Hein (mailto:sh@mig.ag)' <mailto:sh@mig.ag>
+    if ($2 eq $3)
+    {
+      $name = $1;
+      $mail = $2;
+      $mail = $1 if $mail =~ /^mailto:(.*)/;
+    }
+  }
+  elsif ($line =~ /^\s*(.*)\s+<(.*)>\s+\((.*)\)\s*$/)
+  {
+    # Sören Hein <sh@mig.ag> (sh@mig.ag)
+    # Sören Hein <mailto:sh@mig.ag> (mailto:sh@mig.ag)
+    if ($2 eq $3)
+    {
+      $name = $1;
+      $mail = $2;
+      $mail = $1 if $mail =~ /^mailto:(.*)/;
+    }
+  }
+  elsif ($line =~ /^\s*(.*)\s+\[\[mailto:(.*)\]\]\s*$/)
+  {
+    # Sören Hein [[mailto:sh@mig.ag]] (WTF?)
     $name = $1;
     $mail = $2;
   }
+  elsif ($line =~ /^\s*'(.*)\s+\[(.*)\]'\s*$/)
+  {
+    # 'Sören Hein [mailto:sh@mig.ag]'
+    # 'Sören Hein [mig.ag]'
+    $name = $1;
+    $mail = $2;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
+  elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s*$/)
+  {
+    # Sören Hein [mailto:sh@mig.ag]
+    # Sören Hein [mig.ag]
+    $name = $1;
+    $mail = $2;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
+  elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s*$/)
+  {
+    # 'Sören Hein (mailto:sh@mig.ag)'
+    # 'Sören Hein (sh@mig.ag)'
+    $name = $1;
+    $mail = $2;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
+  elsif ($line =~ /^\s*(.*)\s+\((.*)\)\s*$/)
+  {
+    # Sören Hein (mailto:sh@mig.ag)
+    # Sören Hein (sh@mig.ag)
+    $name = $1;
+    $mail = $2;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s*$/)
   {
+    # "Sören Hein" <mailto:sh@mig.ag>
+    # 'Sören Hein' <mailto:sh@mig.ag>
+    # "'Sören Hein." <mailto:sh@mig.ag> (WTF?)
+    # Sören Hein <mailto:sh@mig.ag>
     # Sören Hein <sh@mig.ag>
+    $name = $1;
+    $mail = $2;
+    $name = $1 if $name =~ /^"(.*)"$/;
+    $name = $1 if $name =~ /^'(.*)'$/;
+    $name = $1 if $name =~ /^mailto:(.*)/;
+    $mail = $1 if $mail =~ /^mailto:(.*)/;
+  }
+  elsif ($line =~ /^\s*mailto:(.*)\s+mailto:(.*)\s*$/)
+  {
+    # mailto:sh@mig.ag mailto:sh@mig.ag
+    $name = $1;
+    $mail = $2;
+  }
+  elsif ($line =~ /^\s*(.*)\s+mailto:(.*)\s*$/)
+  {
+    # Sören Hein mailto:sh@mig.ag
     $name = $1;
     $mail = $2;
   }
@@ -231,7 +350,7 @@ sub parse_mail
 
   return if $name eq "" && $mail eq "";
 
-  if ($mail eq "" && $name =~ /@/)
+  if (($mail eq $name || $mail eq "") && $name =~ /@/)
   {
     $mail = $name;
     $name = "";
@@ -259,6 +378,7 @@ sub parse_mail
     $res = "$name ($mail)";
   }
 
+# print "RES .$res.\n";
   push @$list_ref, $res;
 }
 
@@ -303,6 +423,74 @@ sub parse_mails_from
 }
 
 
+sub find_quote_ranges
+{
+  my ($line, $quote, $qref) = @_;
+
+  my $l = length($line);
+  my $index = 0;
+  my $open = 0;
+  while ($index < $l)
+  {
+    my $nextd = index($line, $quote, $index);
+    if ($nextd == -1)
+    {
+      if ($open)
+      {
+        print "WARNING Dangling quote\n";
+        push @$qref, [$index, $l];
+      }
+      last;
+    }
+    elsif ($open)
+    {
+      push @$qref, [$index, $nextd-1];
+      $index = $nextd+1;
+      $open = 0;
+    }
+    else
+    {
+      $index = $nextd+1;
+      $open = 1;
+    }
+  }
+}
+
+
+sub is_quotable_comma
+{
+  my ($i, $qref) = @_;
+
+  foreach my $r (@$qref)
+  {
+    if ($i >= $r->[0] && $i <= $r->[1])
+    {
+      return 0;
+    }
+  }
+  return 1;
+}
+
+
+sub find_quotable_commas
+{
+  my ($line, $qref, $cref) = @_;
+
+  my $l = length($line);
+  my $index = 0;
+  while ($index < $l)
+  {
+    my $nextc = index($line, ',', $index);
+    last if $nextc == -1;
+    if (is_quotable_comma($nextc, $qref))
+    {
+      push @$cref, $nextc;
+    }
+    $index = $nextc+1;
+  }
+
+}
+
 sub parse_mails_to
 {
   my ($line_ref, $list_ref) = @_;
@@ -315,15 +503,58 @@ sub parse_mails_to
   $field = $1 if $$line_ref =~ /^A:\s+(.*)$/;
 
   return if $field eq "";
+  $field =~ s/,$//; # WTF?
 
   # If there are semi-colons, we won't split on commas.
   my @a = split /;/, $field;
 
-  if ($#a == 0)
+  if ($#a == 0 && $a[0] =~ /,/)
   {
-    # Only split on comma if there seem to be multiple mails.
-    my @t = split /\@/, $a[0];
-    @a = split /,/, $a[0] if $#t > 1;
+# print "HERE .$$line_ref.\n";
+    # Find quoted ranges.  We won't split within them.
+    my @quoteRanges = ();
+    find_quote_ranges($a[0], '"', \@quoteRanges);
+# print "HERE2 .$$line_ref.\n";
+    find_quote_ranges($a[0], "'", \@quoteRanges);
+# print "HERE3 .$$line_ref.\n";
+
+if ($#quoteRanges >= 0)
+{
+  # print "QUOTE\n";
+}
+
+    my @commas;
+    find_quotable_commas($a[0], \@quoteRanges, \@commas);
+# print "HERE4 .$$line_ref.\n";
+
+    my $index = 0;
+    my @b;
+    for my $c (@commas)
+    {
+      my $cand = substr($a[0], $index, $c-$index);
+
+      # Preceding interval should probably have an @,
+      # i.e. should look like a mail address.
+
+      if ($cand =~ /\@/)
+      {
+        push @b, $cand;
+        $index = $c+1;
+      }
+    }
+
+    push @b, substr($a[0], $index);
+
+    if ($#b > 0)
+    {
+# print "FOUND A COMMA\n";
+      @a = @b;
+    }
+    # else
+    # {
+# print "NO COMMA\n";
+    # }
+
   }
 
   my $found = 0;
@@ -331,6 +562,8 @@ sub parse_mails_to
   {
     next if $m eq "";
     $found = 1;
+    $m =~ s/"//g;
+# print "MAILTO .$m.\n";
     parse_mail($m, $list_ref);
   }
 
@@ -345,11 +578,12 @@ sub parse_mails
   $$line_ref = clean_line($$line_ref);
 
   # Only look for the actual mail with the @ symbol, not for the name.
-  my @a = split /[ ,;]+/, $$line_ref;
+  my @a = split /[ ,;:\=\<\>\(\)"]+/, $$line_ref;
 
   for my $m (@a)
   {
     next unless $m =~ /\@/;
+    $m =~ s/\.$//;
     parse_mail($m, $list_ref);
   }
 }
