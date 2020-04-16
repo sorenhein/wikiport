@@ -131,7 +131,7 @@ sub parse_runon_line
   my ($line, $lines_ref) = @_;
 
   my @headers = ("An: ", "An:", "To: ", 
-    "Cc: ", 
+    "Cc: ", "Kopie: ",
     "Betreff: ", "Subject: ",
     "Datum: ", "Gesendet: ", "Sent: ");
 # print "LINE BEFORE .$line.\n";
