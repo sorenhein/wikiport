@@ -12,7 +12,8 @@ sub set_MIG
   (
     # Dr. Axel Thierauf
     [ 'MIG: AT',
-      [ "Axel Thierauf", "Thierauf, Axel", "AT (intern)", "Axel' 'Thierauf"],
+      [ "Axel Thierauf", "Thierauf, Axel", "Thierauf Axel",
+        "AT (intern)", "Axel' 'Thierauf"],
       [ 'at@mig.ag', 'a@mig.ag', 'thierauf@mig.ag', 'axel.thierauf@mig.ag',
         'axcel.thierauf@mig.ag', 'xt@mig.ag', 'at@hs984.hostedoffice.ag' ]
     ],
@@ -125,7 +126,7 @@ sub set_MIG
 
     # Katharina Adam
     [ 'MIG: ka',
-      [ "Adam, Katharina", "Katharina"],
+      [ "Adam, Katharina", "Katharina", "ka"],
       [ 'ka@mig.ag', 'ka.@mig.ag', 'adam@mig.ag']
     ],
 
@@ -169,6 +170,12 @@ sub set_MIG
     [ 'MIG: mst',
       [ "Stadler, Monika", "MST Intern"],
       [ 'mst@mig.ag']
+    ],
+
+    # Montana Nick
+    [ 'MIG: mn',
+      [ ],
+      [ 'mn@mig.ag', 'mw@mig.ag']
     ],
 
     # Praktikant

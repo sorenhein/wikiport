@@ -3,6 +3,9 @@
 use strict;
 use warnings;
 
+use HTML::TreeBuilder;
+use HTML::FormatText;
+
 require './names.pl';
 
 # Parse some fields out of Wiki pages.
@@ -35,13 +38,22 @@ while (my $fline = <$fh>)
     chomp $line;
     $line =~ s///g;
 
-    parse_mails_from(\$line, \@mails_from);
-    parse_mails_to(\$line, \@mails_to);
-    parse_mails(\$line, \@mails);
-    parse_attachments(\$line, \@attachments);
-    parse_websites(\$line, \@websites);
-    parse_links(\$line, \@links);
-    parse_dates(\$line, \@dates);
+    if ($line =~ /^\{\{\{#!html/)
+    {
+      my @parsed_lines;
+      parse_embedded_HTML($fi, \@parsed_lines);
+
+      for my $pline (@parsed_lines)
+      {
+        process_line(\$pline, \@attachments, \@links, \@mails_from, \@mails_to, 
+          \@mails, \@websites, \@dates)
+      }
+    }
+    else
+    {
+      process_line(\$line, \@attachments, \@links, \@mails_from, \@mails_to, 
+        \@mails, \@websites, \@dates);
+    }
   }
 
   close $fi;
@@ -66,13 +78,61 @@ while (my $fline = <$fh>)
 close $fh;
 
 
+sub parse_embedded_HTML
+{
+  my ($fi, $lines_ref) = @_;
+
+  my $html_string = "";
+  while (1)
+  {
+    my $html_line = <$fi>;
+    last if $html_line =~ /^\}\}\}/;
+    $html_string .= $html_line;
+  }
+  my $tree = HTML::TreeBuilder->new->parse($html_string);
+  $tree->eof();
+
+  my $formatter = HTML::FormatText::->new(leftmargin => 0, rightmargin => 80);
+  my $text = $formatter->format($tree);
+
+  my @lines = split /\n/, $text;
+  for my $line (@lines)
+  {
+    chomp $line;
+    $line =~ s///g;
+    next if $line =~ /^\s+$/;
+    $line =~ s/[^\x00-\x7f]//g; # Wide characters
+    push @$lines_ref, $line;
+    # print "LINE .$line.\n";
+  }
+  # print $text;
+}
+
+
+sub process_line
+{
+  my ($line_ref, $attachments_ref, $links_ref, 
+    $mails_from_ref, $mails_to_ref, $mails_ref,
+    $websites_ref, $dates_ref) = @_;
+
+  parse_attachments($line_ref, $attachments_ref);
+  parse_links($line_ref, $links_ref);
+
+  parse_mails_from($line_ref, $mails_from_ref);
+  parse_mails_to($line_ref, $mails_to_ref);
+  parse_mails($line_ref, $mails_ref);
+
+  parse_websites($line_ref, $websites_ref);
+  parse_dates($line_ref, $dates_ref);
+}
+
+
 sub parse_MIG_name
 {
   my $name = pop;
-  my $lcname = lc $name;
-  if (defined $MIG_names{$lcname})
+  if (defined $MIG_names{$name})
   {
-    return $MIG_names{$lcname};
+    return $MIG_names{$name};
   }
   else
   {
@@ -172,6 +232,12 @@ sub parse_mail
     $name = $1;
     $mail = $2;
     $mail = $1 if $mail =~ /^mailto:(.*)/;
+    if ($mail !~ /\@/)
+    {
+      # Sören Hein (E-Mail)
+      $name .= " ($mail)";
+      $mail = "";
+    }
   }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s*$/)
   {
@@ -237,13 +303,18 @@ sub parse_mail
     $name = "";
   }
 
+# print "GOT .$name., .$mail.\n";
+
   $name = parse_MIG_name($name) if $name ne "";
   $mail = parse_MIG_mail($mail) if $mail ne "";
+
 
   if ($name eq $mail)
   {
     $mail = "";
   }
+
+# print "FOUND .$name., .$mail.\n";
 
   my $res;
   if ($mail eq "")
@@ -382,6 +453,8 @@ sub parse_mails_to
   $field = $1 if $$line_ref =~ /^An:\s+(.*)$/;
   $field = $1 if $$line_ref =~ /^To:\s+(.*)$/;
   $field = $1 if $$line_ref =~ /^A:\s+(.*)$/;
+  $field = $1 if $$line_ref =~ /^Kopie:\s+(.*)$/;
+  $field = $1 if $$line_ref =~ /^Cc:\s+(.*)$/;
 
   return if $field eq "";
   $field =~ s/,$//; # WTF?
@@ -459,11 +532,12 @@ sub parse_mails
   $$line_ref = clean_line($$line_ref);
 
   # Only look for the actual mail with the @ symbol, not for the name.
-  my @a = split /[ ,;:\=\<\>\(\)"]+/, $$line_ref;
+  my @a = split /[ ,;:\=\<\>\(\)"\[\]]+/, $$line_ref;
 
   for my $m (@a)
   {
     next unless $m =~ /\@/;
+# print "FREETEXT .$m.\n";
     $m =~ s/\.$//;
     parse_mail($m, $list_ref);
   }
@@ -647,15 +721,21 @@ sub print_count_list
   my %h;
   $h{$_}++ for @$list_ref;
 
+  my @MIG;
   for my $k (sort keys %h)
   {
-    next if $k =~ /^MIG:/;
-    printf "%2d %s\n", $h{$k}, $k;
+    if ($k =~ /^MIG:/)
+    {
+      push @MIG, $k;
+    }
+    else
+    {
+      printf "%2d %s\n", $h{$k}, $k;
+    }
   }
-  for my $k (sort keys %h)
 
+  for my $k (sort @MIG)
   {
-    next unless $k =~ /^MIG:/;
     printf "%2d %s\n", $h{$k}, $k;
   }
 
