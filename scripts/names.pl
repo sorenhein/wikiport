@@ -14,7 +14,8 @@ sub set_MIG
     [ 'MIG: AT',
       [ "Axel Thierauf", "Thierauf, Axel", "Thierauf Axel",
         "AT (intern)", "Axel' 'Thierauf"],
-      [ 'at@mig.ag', 'a@mig.ag', 'thierauf@mig.ag', 'axel.thierauf@mig.ag',
+      [ 'at@mig.ag', 'a.t@mig.ag', 'a@mig.ag', 'thierauf@mig.ag', 
+        'axel.thierauf@mig.ag',
         'axcel.thierauf@mig.ag', 'xt@mig.ag', 'at@hs984.hostedoffice.ag' ]
     ],
 
@@ -40,30 +41,31 @@ sub set_MIG
     [ 'MIG: JK',
       [ "Jürgen Kosch", "JK (intern)", "Jürgen Kosch (E-Mail)",
         "Jürgen Kosch/MIG Verwaltungs AG", "Kosch, Juergen", 
-        "JürgenKosch" ],
+        "Dipl. Ing. Jürgen Kosch", "JürgenKosch" ],
       [ 'jk@mig.ag', 'juergen.kosch@mig.ag', 'j.kosch@mig.ag', 
-        'kosch@mig.ag', 'jg@mig.ag', 'jk@hs984.hostedoffice.ag' ]
+        'jurgen.kosch@mig.ag', 'kosch@mig.ag', 'jg@mig.ag', 
+        'jko@mig.ag', 'jk@hs984.hostedoffice.ag' ]
     ],
 
     # Kristian Schmidt-Garve
     [ 'MIG: KSG',
       [ "Schmidt-Garve, Kristian"],
       [ 'ksg@mig.ag', 'kristian.schmidt-garve@mig.ag', 
-        'ksg@hs984.hostedoffice.ag']
+        'kristian.schmidtgarve@mig.ag', 'ksg@hs984.hostedoffice.ag']
     ],
 
     # Matthias Guth
     [ 'MIG: MG',
       [ "Guth, Matthias"],
-      [ 'mg@mig.ag', 'mg@hs984.hostedoffice.ag']
+      [ 'mg@mig.ag', 'matthias.guth@mig.ag', 'mg@hs984.hostedoffice.ag']
     ],
 
     # Dr. Matthias Kromayer
     [ 'MIG: MK',
-      [ "Matthias Kromayer", "Kromayer, Matthias",
+      [ "Matthias Kromayer", "Kromayer, Matthias", "Kromayer Matthias",
         "Matthias Kromayer (extern)", "Dr. Kromayer (extern) Matthias" ],
       [ 'mk@mig.ag', 'm.k@mig.ag', 'matthias.kromayer@mig.ag', 
-        'kromayer@mig.ag' ]
+        'kromayer@mig.ag', 'mkr@mig.ag' ]
     ],
 
     # Michael Motschmann
@@ -88,6 +90,12 @@ sub set_MIG
 
 
 
+    # Anna Chojnacka
+    [ 'MIG: ac',
+      [ "Chojnacka, Anna"],
+      [ 'ac@mig.ag']
+    ],
+
     # Brigitte Eckmaier
     [ 'MIG: be',
       [ "Eckmaier, Brigitte"],
@@ -106,10 +114,16 @@ sub set_MIG
       [ 'dr@mig.ag']
     ],
 
+    # Gero Fiedler
+    [ 'MIG: gf',
+      [ "Fiedler, Gero"],
+      [ 'gf@mig.ag']
+    ],
+
     # Holger Hinz, AR
     [ 'MIG: hh',
-      [ ],
-      [ 'hh@mig.ag']
+      [ "Holger Clemens Hinz"],
+      [ 'hh@mig.ag', 'hch@mig.ag', 'holger.hinz@mig.ag']
     ],
 
     # Janine Jaschke
@@ -134,6 +148,12 @@ sub set_MIG
     [ 'MIG: lg',
       [ ],
       [ 'lg@mig.ag']
+    ],
+
+    # Marta Berendsen
+    [ 'MIG: mb',
+      [ "Berendsen, Marta"],
+      [ 'mb@mig.ag']
     ],
 
     # Maria Betz, née Huttner
@@ -214,8 +234,11 @@ sub set_MIG
     [ 'MIG: businessplan',
       [ "business plan"],
       [ 'businessplan@mig.ag', 'business@mig.ag', 'businesplan@mig.ag',
+        'businesssplan@mig.ag',
         'beteiligung@mig.ag', 'beteiligungsanfrage@mig.ag', 
         'beteiligunmgsanfrage@mig.ag', 'beteiligungfanfrage@mig.ag',
+        'beteiligungungsanfrage@mig.ag',
+        'beteiligunsganfrage@mig.ag',
         'beteiligunsanfrage@mig.ag', 'beteiligungsanfrag@mig.ag',
         'beteiligungsanfragen@mig.ag', 'beteiligungsantrag@mig.ag',
         'beteiligungsgesellschaft@mig.ag']
@@ -224,7 +247,7 @@ sub set_MIG
     # info
     [ 'MIG: info',
       [ ],
-      [ 'info@mig.ag', 'infok@mig.ag']
+      [ 'info@mig.ag', 'infok@mig.ag', 'iinfo@mig.ag', 'nfo@mig.ag']
     ],
 
     # fonds

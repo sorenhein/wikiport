@@ -631,6 +631,8 @@ print "WHAT? .$line.\n";
     $month <= 0 || $month > 12 || 
     $year < 2000);
 
+  $day .= "0" if ($day < 10);
+
   my $date = $year . '-' . $month . "-" . $day;
   push @$list_ref, $date;
 
