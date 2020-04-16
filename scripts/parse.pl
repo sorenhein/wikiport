@@ -77,6 +77,10 @@ sub set_MIG_names
   $nref->{"AT (intern)"}             = "MIG: AT";
   $nref->{"Axel' 'Thierauf"}         = "MIG: AT";
 
+  $nref->{"Eckmaier, Brigitte"}      = "MIG: BE";
+
+  $nref->{"Bernstein, Boris"}        = "MIG: DR";
+
   $nref->{"Steingruber-Dotterweich, Barbara"} = "MIG: BS";
 
   $nref->{"Roebert, Doreen"}         = "MIG: DR";
@@ -91,11 +95,14 @@ sub set_MIG_names
   $nref->{"Kosch, Juergen"}          = "MIG: JK";
   $nref->{"JK (intern)"}             = "MIG: JK";
 
+  $nref->{"Johannes Musiol"}         = "MIG: JK";
+
   $nref->{"Dr. Klaus Feix"}          = "MIG: KF";
   $nref->{"Klaus Feix"}              = "MIG: KF";
 
   $nref->{"Schmidt-Garve, Kristian"} = "MIG: KSG";
 
+  $nref->{"Maria Huttner"}           = "MIG: MBe";
   $nref->{"Betz, Maria"}             = "MIG: MBe";
 
   $nref->{"Guth, Matthias"}          = "MIG: MG";
@@ -113,9 +120,13 @@ sub set_MIG_names
 
   $nref->{"Kahl, Oliver"}            = "MIG: OK";
 
+  $nref->{"Csapo, Renata"}           = "MIG: RC";
+
   $nref->{"Sören Hein"}              = "MIG: SH";
   $nref->{"Hein, Sören"}             = "MIG: SH";
   $nref->{"Hein, SÃ¶ren"}            = "MIG: SH";
+
+  $nref->{"Sabine Kosch"}            = "MIG: SK";
 
   $nref->{"Mauer, Theresa"}          = "MIG: TM";
 
@@ -131,7 +142,14 @@ sub set_MIG_mails
 
   $nref->{'at@mig.ag'}                 = "MIG: AT";
   $nref->{'a@mig.ag'}                  = "MIG: AT";
+  $nref->{'thierauf@mig.ag'}           = "MIG: AT";
+  $nref->{'axel.thierauf@mig.ag'}     = "MIG: AT";
+  $nref->{'axcel.thierauf@mig.ag'}     = "MIG: AT";
   $nref->{'at@hs984.hostedoffice.ag'}  = "MIG: AT";
+
+  $nref->{'bb@mig.ag'}                 = "MIG: BB";
+
+  $nref->{'be@mig.ag'}                 = "MIG: BE";
 
   $nref->{'bs@mig.ag'}                 = "MIG: BS";
 
@@ -139,37 +157,63 @@ sub set_MIG_mails
 
   $nref->{'jk@mig.ag'}                 = "MIG: JK";
   $nref->{'JK@mig.ag'}                 = "MIG: JK";
+  $nref->{'jg@mig.ag'}                 = "MIG: JK";
+  $nref->{'juergen.kosch@mig.ag'}      = "MIG: JK";
+  $nref->{'Juergen.kosch@mig.ag'}      = "MIG: JK";
+  $nref->{'Juergen.Kosch@mig.ag'}      = "MIG: JK";
   $nref->{'j.kosch@mig.ag'}            = "MIG: JK";
+  $nref->{'kosch@mig.ag'}              = "MIG: JK";
   $nref->{'jk@hs984.hostedoffice.ag'}  = "MIG: JK";
 
+  $nref->{'jm@mig.ag'}                 = "MIG: JM";
+
   $nref->{'ka@mig.ag'}                 = "MIG: KA";
+  $nref->{'ka.@mig.ag'}                 = "MIG: KA";
 
   $nref->{'kf@mig.ag'}                 = "MIG: KF";
+  $nref->{'klaus.feix@mig.ag'}         = "MIG: KF";
   $nref->{'kf@hs984.hostedoffice.ag'}  = "MIG: KF";
 
   $nref->{'ksg@mig.ag'}                = "MIG: KSG";
   $nref->{'ksg@hs984.hostedoffice.ag'} = "MIG: KSG";
   $nref->{'kristian.schmidt-garve@mig.ag'} = "MIG: KSG";
 
+  $nref->{'mh@mig.ag'}                 = "MIG: MBe";
   $nref->{'mbe@mig.ag'}                = "MIG: MBe";
 
   $nref->{'mg@mig.ag'}                 = "MIG: MG";
   $nref->{'mg@hs984.hostedoffice.ag'}  = "MIG: MG";
 
   $nref->{'mk@mig.ag'}                 = "MIG: MK";
+  $nref->{'m.k@mig.ag'}                = "MIG: MK";
   $nref->{'matthias.kromayer@mig.ag'}  = "MIG: MK";
   $nref->{'kromayer@mig.ag'}           = "MIG: MK";
 
+  $nref->{'cm@mig.ag'}                 = "MIG: CM";
+  $nref->{'cecil.motschmann@mig.ag'}   = "MIG: CM";
+
   $nref->{'mm@mig.ag'}                 = "MIG: MM";
+  $nref->{'MM@mig.ag'}                 = "MIG: MM";
+  $nref->{'michael@mig.ag'}            = "MIG: MM";
   $nref->{'michael.motschmann@mig.ag'} = "MIG: MM";
+  $nref->{'Michael.Motschmann@mig.ag'} = "MIG: MM";
+  $nref->{'Motschmann@mig.ag'}         = "MIG: MM";
+
+  $nref->{'mst@mig.ag'}                = "MIG: MSt";
+  $nref->{'MST@mig.ag'}                = "MIG: MSt";
 
   $nref->{'ok@mig.ag'}                 = "MIG: OK";
 
-  $nref->{'mst@mig.ag'}                = "MIG: MSt";
+  $nref->{'praktikant@mig.ag'}         = "MIG: Praktikant";
+
+  $nref->{'rc@mig.ag'}                 = "MIG: RD";
 
   $nref->{'sh@mig.ag'}                 = "MIG: SH";
+  $nref->{'soren.hein@mig.ag'}         = "MIG: SH";
   $nref->{'soeren.hein@mig.ag'}        = "MIG: SH";
   $nref->{'sh@hs984.hostedoffice.ag'}  = "MIG: SH";
+
+  $nref->{'sk@mig.ag'}                 = "MIG: SK";
 
   $nref->{'tm@mig.ag'}                 = "MIG: TM";
 
@@ -177,12 +221,25 @@ sub set_MIG_mails
 
   $nref->{'info@mig.ag'}               = "MIG: info";
   $nref->{'Info@mig.ag'}               = "MIG: info";
+  $nref->{'infok@mig.ag'}              = "MIG: info";
+
   $nref->{'fonds@mig.ag'}              = "MIG: fonds";
+
   $nref->{'beteiligungsanfrage@mig.ag'}  = "MIG: businessplan";
+  $nref->{'beteiligungfanfrage@mig.ag'}  = "MIG: businessplan";
+  $nref->{'beteiligunsanfrage@mig.ag'}  = "MIG: businessplan";
+  $nref->{'beteiligungsanfrag@mig.ag'}  = "MIG: businessplan";
+  $nref->{'beteiligungsanfragen@mig.ag'} = "MIG: businessplan";
   $nref->{'Beteiligungsanfrage@mig.ag'}  = "MIG: businessplan";
   $nref->{'Beteiligunmgsanfrage@mig.ag'} = "MIG: businessplan";
+  $nref->{'beteiligungsantrag@mig.ag'}  = "MIG: businessplan";
+  $nref->{'beteiligungsgesellschaft@mig.ag'}  = "MIG: businessplan";
+  $nref->{'Beteiligung@mig.ag'}  = "MIG: businessplan";
   $nref->{'businessplan@mig.ag'}       = "MIG: businessplan";
-  $nref->{'businessplan@mig.ag'}       = "MIG: businessplan";
+  $nref->{'businesplan@mig.ag'}       = "MIG: businessplan";
+  $nref->{'business@mig.ag'}       = "MIG: businessplan";
+  $nref->{'Businessplan@mig.ag'}       = "MIG: businessplan";
+
   $nref->{'wiki@mig.ag'}               = "MIG: wiki";
 }
 
