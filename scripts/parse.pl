@@ -8,6 +8,7 @@ require './names.pl';
 require './websites.pl';
 
 my $DEBUG_MAIL = 0;
+my $inactive_time = 120;
 
 # Parse some fields out of Wiki pages.
 
@@ -91,8 +92,9 @@ while (my $fline = <$fh>)
   print_count_list(\@mails_to, "Mails to");
   print_count_list(\@mails, "Mails in text");
 
-  print_list(\@dates, "Dates");
+  print_count_list(\@dates, "Dates");
   print_date_range(\@dates);
+  print_date_segments(\@dates);
 
   print_list(\@attached_mails, "Attached mails");
   print_list(\@attached_files, "Attached files");
@@ -892,6 +894,71 @@ sub print_date_range
   my $diff = 365 * ($y2-$y1) + 30 * ($m2-$m1) + ($d2-$d1);
 
   print "Approx. $diff days in process\n\n";
+}
+
+
+sub print_date_segments
+{
+  my $dref = pop;
+  my @d = sort @$dref;
+  return if $#d <= 0;
+
+  my $index = 0;
+  my $looking = 1;
+  my ($i0, $y0, $m0, $d0, $val0);
+  my ($yprev, $mprev, $dprev, $valprev);
+
+  my $seen = 0;
+
+  while (1)
+  {
+    last if $index > $#$dref;
+
+    if ($looking)
+    {
+      $i0 = $index;
+      $d[$i0] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
+      ($y0, $m0, $d0) = ($1, $2, $3);
+      $val0 = 365 * $y0 + 30 * $m0 + $d0;
+      $valprev = $val0;
+      $looking = 0;
+    }
+
+    $d[$index] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
+    my ($y1, $m1, $d1) = ($1, $2, $3);
+    my $val1 = 365 * $y1 + 30 * $m1 + $d1;
+
+    if ($val1 - $valprev > $inactive_time)
+    {
+      print "$d[$i0] to $d[$index-1]: Approx. ",
+        $valprev - $val0, " days in segment\n";
+
+      $seen = 1;
+      $looking = 1;
+
+      if ($index == $#$dref)
+      {
+        print "$d[$index] to $d[$index]: Approx. ",
+          0, " days in segment\n";
+      }
+    }
+    elsif ($index == $#$dref)
+    {
+      print "$d[$i0] to $d[$index]: Approx. ",
+        $val1 - $val0, " days in segment\n";
+
+      last;
+    }
+      
+    $yprev = $y1;
+    $mprev = $m1;
+    $dprev = $d1;
+    $valprev = $val1;
+
+    $index++;
+  }
+  
+  print "\n" if $seen;
 }
 
 
