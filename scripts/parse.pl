@@ -766,7 +766,8 @@ sub parse_websites
   my @a = split /[,;|\s\xa0]+/, $$line_ref;
   for my $e (@a)
   {
-    if ($e =~ /www\./ || $e =~ /^http/)
+    # if ($e =~ /www\./ || $e =~ /^http.\//)
+    if ($e =~ /www\./ || $e =~ /^http.\// || $e =~ /^https.\//)
     {
       $e =~ s/\.$//;
       $e =~ s/\/$//;
@@ -774,11 +775,11 @@ sub parse_websites
       my $hit = 0;
       for my $k (keys %$web_skip_ref)
       {
-        $hit = 1 if $e =~ /$k/i;
+        $hit = 1 if $e =~ /\Q$k/i;
       }
       next if $hit;
 
-      $e =~ s/^.*http:\/([^\/].*)/http:\/$1/g; # Fix http:/
+      $e =~ s/^.*http:\/([^\/].*)/http:\/\/$1/g; # Fix http:/
       $e =~ s/^.*(http\/\/)/$1:/g; # Fix http//
 
       $e =~ s/^.*(http:\/\/.*)/$1/; # Nothing in front of http
@@ -797,6 +798,8 @@ sub parse_websites
       $e =~ s/\)$//; # Trailing )
       $e =~ s/>$//; # Trailing >
       $e =~ s/\/$//; # Trailing /
+
+      $e =~ s/-*$// if ($e =~ /---$/);
 
       push @$list_ref, $e;
     }
