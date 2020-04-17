@@ -109,8 +109,14 @@ sub parse_embedded_HTML
   my $tree = HTML::TreeBuilder->new->parse($html_string);
   $tree->eof();
 
-  my $formatter = HTML::FormatText::->new(leftmargin => 0, rightmargin => 80);
+  my $formatter = HTML::FormatText::->new(leftmargin => 0, rightmargin => 300);
   my $text = $formatter->format($tree);
+  
+  if ($text =~ /An: / || $text =~ /To: /)
+  {
+    parse_runon_line_to_text(\$text);
+  }
+# print $text;
 
   my @lines = split /\n/, $text;
   for my $line (@lines)
@@ -120,9 +126,26 @@ sub parse_embedded_HTML
     next if $line =~ /^\s+$/;
     $line =~ s/[^\x00-\x7f]//g; # Wide characters
     push @$lines_ref, $line;
-    # print "LINE .$line.\n";
+# print "LINE .$line.\n";
   }
-  # print $text;
+}
+
+
+sub parse_runon_line_to_text
+{
+  my $line_ref = pop;
+
+  my @headers = (
+    "Von: ", "From: ",
+    "An: ", "An:", "To: ", 
+    "Cc: ", "Kopie: ",
+    "Betreff: ", "Subject: ",
+    "Datum: ", "Gesendet: ", "Sent: ");
+
+  for my $h (@headers)
+  {
+    $$line_ref =~ s/$h/\n$h/;
+  }
 }
 
 
@@ -130,20 +153,8 @@ sub parse_runon_line
 {
   my ($line, $lines_ref) = @_;
 
-  my @headers = ("An: ", "An:", "To: ", 
-    "Cc: ", "Kopie: ",
-    "Betreff: ", "Subject: ",
-    "Datum: ", "Gesendet: ", "Sent: ");
-# print "LINE BEFORE .$line.\n";
-  for my $h (@headers)
-  {
-    $line =~ s/$h/\n$h/;
-  }
-
+  $line = parse_runon_line_to_text(\$line);
   @$lines_ref = split /\n/, $line;
-
-# print "LINES AFTER:\n";
-# print ".$_.\n" for @$lines_ref;
 }
 
 

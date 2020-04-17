@@ -56,8 +56,9 @@ sub set_MIG
 
     # Matthias Guth
     [ 'MIG: MG',
-      [ "Guth, Matthias"],
-      [ 'mg@mig.ag', 'matthias.guth@mig.ag', 'mg@hs984.hostedoffice.ag']
+      [ "Guth, Matthias", "Matthias"],
+      [ 'mg@mig.ag', 'matthias.guth@mig.ag', 'mguth@mig.ag',
+        'mg@hs984.hostedoffice.ag']
     ],
 
     # Dr. Matthias Kromayer
@@ -235,8 +236,9 @@ sub set_MIG
     [ 'MIG: businessplan',
       [ "business plan"],
       [ 'businessplan@mig.ag', 'business@mig.ag', 'businesplan@mig.ag',
-        'businesssplan@mig.ag',
+        'businesssplan@mig.ag', 'www.businesslan@mig.ag',
         'beteiligung@mig.ag', 'beteiligungsanfrage@mig.ag', 
+        'beiteiligungsanfrage@mig.ag', 
         'beteiligunmgsanfrage@mig.ag', 'beteiligungfanfrage@mig.ag',
         'beteiligungungsanfrage@mig.ag',
         'beteiligunsganfrage@mig.ag',
