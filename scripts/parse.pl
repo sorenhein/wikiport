@@ -234,7 +234,6 @@ sub parse_mail
   if ($line =~ /^\s*(.*)\s+\((.*)\)\s+<(.*)>\s*$/)
   {
     # Sören Hein (sh@mig.ag) <sh@mig.ag>
-    # Sören Hein (mailto:sh@mig.ag) <mailto:sh@mig.ag>
     if ($2 eq $3)
     {
       $name = $1;
@@ -244,7 +243,6 @@ sub parse_mail
   elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s+<(.*)>\s*$/)
   {
     # 'Sören Hein (sh@mig.ag)' <sh@mig.ag>
-    # 'Sören Hein (mailto:sh@mig.ag)' <mailto:sh@mig.ag>
     if ($2 eq $3)
     {
       $name = $1;
@@ -254,7 +252,6 @@ sub parse_mail
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s+\((.*)\)\s*$/)
   {
     # Sören Hein <sh@mig.ag> (sh@mig.ag)
-    # Sören Hein <mailto:sh@mig.ag> (mailto:sh@mig.ag)
     if ($2 eq $3)
     {
       $name = $1;
@@ -263,38 +260,21 @@ sub parse_mail
   }
   elsif ($line =~ /^\s*(.*)\s+\[\[(.*)\]\]\s*$/)
   {
-    # Sören Hein [[mailto:sh@mig.ag]] (WTF?)
-    $name = $1;
-    $mail = $2;
-  }
-  elsif ($line =~ /^\s*'(.*)\s+\[(.*)\]'\s*$/)
-  {
-    # 'Sören Hein [mailto:sh@mig.ag]'
-    # 'Sören Hein [mig.ag]'
+    # Sören Hein [[sh@mig.ag]] (WTF?)
     $name = $1;
     $mail = $2;
   }
   elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s*$/)
   {
-    # Sören Hein [mailto:sh@mig.ag]
-    # Sören Hein [mig.ag]
-    $name = $1;
-    $mail = $2;
-  }
-  elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s*$/)
-  {
-    # 'Sören Hein (mailto:sh@mig.ag)'
-    # 'Sören Hein (sh@mig.ag)'
+    # Sören Hein [sh@mig.ag]
     $name = $1;
     $mail = $2;
   }
   elsif ($line =~ /^\s*(.*)\s+\((.*)\)\s*$/)
   {
-    # Sören Hein (mailto:sh@mig.ag)
     # Sören Hein (sh@mig.ag)
     $name = $1;
     $mail = $2;
-    # $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
     if ($mail !~ /\@/)
     {
       # Sören Hein (E-Mail)
@@ -304,47 +284,21 @@ sub parse_mail
   }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s*$/)
   {
-    # "Sören Hein" <mailto:sh@mig.ag>
-    # 'Sören Hein' <mailto:sh@mig.ag>
-    # "'Sören Hein." <mailto:sh@mig.ag> (WTF?)
-    # Sören Hein <mailto:sh@mig.ag>
     # Sören Hein <sh@mig.ag>
     $name = $1;
     $mail = $2;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
 
     $name = $1 if $name =~ /^"(.*)"$/;
     $name = $1 if $name =~ /^'(.*)'$/;
   }
-  elsif ($line =~ /^\s*mailto:(.*)\s+mailto:(.*)\s*$/)
-  {
-    # mailto:sh@mig.ag mailto:sh@mig.ag
-    $name = $1;
-    $mail = $2;
-  }
-  elsif ($line =~ /^\s*(.*)\s+mailto:(.*)\s*$/)
-  {
-    # Sören Hein mailto:sh@mig.ag
-    $name = $1;
-    $mail = $2;
-  }
   elsif ($line =~ /^\s*<(.*)>$/)
   {
     # <sh@mig.ag>
-    # <mailto:sh@mig.ag>
     $mail = $1;
   }
   elsif ($line =~ /^\s*\((.*)\)/)
   {
     # (sh@mig.ag)
-    # (mailto:sh@mig.ag)
-    $mail = $1;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
-  }
-  elsif ($line =~ /^\s*mailto:(.*)\s*$/)
-  {
-    # mailto:sh@mig.ag
     $mail = $1;
   }
   else
