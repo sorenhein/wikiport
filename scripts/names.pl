@@ -70,7 +70,8 @@ sub set_MIG
 
     # Michael Motschmann
     [ 'MIG: MM',
-      [ "Michael Motschmann", "Michael Motschmann - MIG AG Fond"],
+      [ "Michael Motschmann", "Michael Motschmann - MIG AG Fond",
+        "Motschmann, Michael"],
       [ 'mm@mig.ag', 'michael.motschmann@mig.ag', 'michael@mig.ag',
         'motschmann@mig.ag', 'mmo@mig.ag']
     ],

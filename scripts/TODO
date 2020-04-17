@@ -34,5 +34,23 @@ Oliver's link: When space, %20 (perl will still look it up!)
 
 Parse HTML embedded
 
-No linebreak in An: Von:
 Parse sub-directories of a deal for further information
+
+Parse mail name times
+
+Parse mails from output file, histogram, look at manually.
+- Exactly one @, not mig.ag
+- Exactly one @, mig.ag
+- More than one @
+- No @, but MIG ..
+- No @, no MIG ..
+
+Use the header information that JK gabe
+
+respace function
+
+Blacklist of websites:
+Perl function
+expand list based on output
+
+

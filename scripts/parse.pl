@@ -194,9 +194,38 @@ sub parse_MIG_mail
 }
 
 
+sub respace_mail
+{
+  my $line_ref = pop;
+
+  $$line_ref =~ s/^\s*'([^']*)'\s*/$1/;
+  $$line_ref =~ s/^\s*"([^']*)"\s*/$1/;
+
+  $$line_ref =~ s/\(\s/(/;
+  $$line_ref =~ s/\s\)/)/;
+  $$line_ref =~ s/<\s/</;
+  $$line_ref =~ s/\s>/>/;
+  $$line_ref =~ s/\[\s/[/;
+  $$line_ref =~ s/\s\]/]/;
+
+  $$line_ref =~ s/(\V)\(/$1 (/;
+  $$line_ref =~ s/\)(\V)/) $1/;
+  $$line_ref =~ s/(\V)</$1 </;
+  $$line_ref =~ s/>(\V)/> $1/;
+  $$line_ref =~ s/(\V)\[/$1 [/;
+  $$line_ref =~ s/\](\V)/] $1/;
+
+  $$line_ref =~ s/\s+/ /g;
+  $$line_ref =~ s/^\s+//;
+  $$line_ref =~ s/\s+$//;
+}
+
+
 sub parse_mail
 {
   my ($line, $list_ref) = @_;
+
+  respace_mail(\$line);
 
   my $name = "";
   my $mail = "";
@@ -208,8 +237,6 @@ sub parse_mail
     {
       $name = $1;
       $mail = $2;
-      $mail =~ s/^\s+//;
-      $mail =~ s/\s+$//;
       $mail = $1 if $mail =~ /^mailto:(.*)/;
     }
   }
@@ -248,8 +275,6 @@ sub parse_mail
     $name = $1;
     $mail = $2;
     $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
   }
   elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s*$/)
   {
@@ -309,8 +334,6 @@ sub parse_mail
     # Sören Hein mailto:sh@mig.ag
     $name = $1;
     $mail = $2;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
   }
   elsif ($line =~ /^\s*<(.*)>$/)
   {
@@ -318,8 +341,6 @@ sub parse_mail
     # <mailto:sh@mig.ag>
     $mail = $1;
     $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
   }
   elsif ($line =~ /^\s*\((.*)\)/)
   {
@@ -327,21 +348,15 @@ sub parse_mail
     # (mailto:sh@mig.ag)
     $mail = $1;
     $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
   }
   elsif ($line =~ /^\s*mailto:(.*)\s*$/)
   {
     # mailto:sh@mig.ag
     $mail = $1;
-    $mail =~ s/^\s+//;
-    $mail =~ s/\s+$//;
   }
   else
   {
     $name = $line;
-    $name =~ s/^\s+//;
-    $name =~ s/\s+$//;
   }
 
   if ($name =~ /^"(.*)"$/ || $name =~ /^'(.*)'$/)
@@ -572,6 +587,10 @@ if ($#quoteRanges >= 0)
     $found = 1;
     $m =~ s/"//g;
 # print "MAILTO .$m.\n";
+if ($m =~ /Motsch/)
+{
+  # print "HERE\n";
+}
     parse_mail($m, $list_ref);
   }
 
@@ -624,14 +643,14 @@ sub parse_date
   }
   else
   {
-print "WHAT? .$line.\n";
+    print "ODD DATE .$line.\n";
   }
 
   return if ($day <= 0 || $day > 31 || 
     $month <= 0 || $month > 12 || 
     $year < 2000);
 
-  $day .= "0" if ($day < 10);
+  $day .= "0" if ($day < 10 && length($day) == 1);
 
   my $date = $year . '-' . $month . "-" . $day;
   push @$list_ref, $date;
@@ -753,10 +772,10 @@ sub print_date_range
   $d[0] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
   my ($y1, $m1, $d1) = ($1, $2, $3);
 
-if (! defined $y1)
-{
-  print "HERE\n";
-}
+  if (! defined $y1)
+  {
+    print "ODD YEAR\n";
+  }
 
   $d[$#d] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
   my ($y2, $m2, $d2) = ($1, $2, $3);
