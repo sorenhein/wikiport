@@ -5,7 +5,7 @@ Do they exist?
 What should they really be?
 
 1000 pages of Jürgen:
-Do they "reallly" exist?
+Do they "really" exist?
 Are they really deals?
 
 Some duplicates:
@@ -15,12 +15,6 @@ BioDiesel3
 ...more?
 
 Some should be split into several rounds (A, B, ...)
-
-Parse page for
-- All dates
-- All emails
-- All websites
-- Heuristics for MIG names (Krohmayer, meier, ...)
 
 Compare dates to Oliver's
 
@@ -32,25 +26,10 @@ New segmentation of MIG deal categories
 
 Oliver's link: When space, %20 (perl will still look it up!)
 
-Parse HTML embedded
-
 Parse sub-directories of a deal for further information
 
-Parse mail name times
+Dates also output as hist
+Split date ranges where > 6 months gap
 
-Parse mails from output file, histogram, look at manually.
-- Exactly one @, not mig.ag
-- Exactly one @, mig.ag
-- More than one @
-- No @, but MIG ..
-- No @, no MIG ..
-
-Use the header information that JK gabe
-
-respace function
-
-Blacklist of websites:
-Perl function
-expand list based on output
-
+Use the header information that JK gave
 

@@ -35,7 +35,8 @@ while (my $fline = <$fh>)
 
   open my $fi, "<", $fline or die "Cannot open $fline: $!";
 
-  my (@mails_from, @mails_to, @mails, @dates, @attachments, @websites, @links);
+  my (@mails_from, @mails_to, @mails, @dates, 
+    @attached_mails, @attached_files, @websites, @links);
   
   while (my $line = <$fi>)
   {
@@ -49,8 +50,8 @@ while (my $fline = <$fh>)
 
       for my $pline (@parsed_lines)
       {
-        process_line(\$pline, \@attachments, \@links, \@mails_from, \@mails_to, 
-          \@mails, \@websites, \@dates)
+        process_line(\$pline, \@attached_mails, \@attached_files, \@links, 
+          \@mails_from, \@mails_to, \@mails, \@websites, \@dates)
       }
     }
     elsif ($line =~ /^Von: / || $line =~ /^From: /)
@@ -62,24 +63,26 @@ while (my $fline = <$fh>)
 
         for my $sline (@split_lines)
         {
-          process_line(\$sline, \@attachments, \@links, \@mails_from, \@mails_to, 
-            \@mails, \@websites, \@dates)
+          process_line(\$sline, \@attached_mails, \@attached_files, \@links, 
+            \@mails_from, \@mails_to, \@mails, \@websites, \@dates)
         }
       }
       else
       {
-        process_line(\$line, \@attachments, \@links, \@mails_from, \@mails_to, 
-          \@mails, \@websites, \@dates);
+        process_line(\$line, \@attached_mails, \@attached_files, \@links, 
+          \@mails_from, \@mails_to, \@mails, \@websites, \@dates)
       }
     }
     else
     {
-      process_line(\$line, \@attachments, \@links, \@mails_from, \@mails_to, 
-        \@mails, \@websites, \@dates);
+      process_line(\$line, \@attached_mails, \@attached_files, \@links, 
+        \@mails_from, \@mails_to, \@mails, \@websites, \@dates)
     }
   }
 
   close $fi;
+
+  parse_dates_from_mails(\@attached_mails, \@dates);
 
   print "$fline\n";
   print "=" x length($fline), "\n\n";
@@ -91,7 +94,8 @@ while (my $fline = <$fh>)
   print_list(\@dates, "Dates");
   print_date_range(\@dates);
 
-  print_list(\@attachments, "Attachments");
+  print_list(\@attached_mails, "Attached mails");
+  print_list(\@attached_files, "Attached files");
   print_count_list(\@websites, "Websites");
   print_list(\@links, "Links");
   print "\n\n";
@@ -164,11 +168,11 @@ sub parse_runon_line
 
 sub process_line
 {
-  my ($line_ref, $attachments_ref, $links_ref, 
+  my ($line_ref, $attached_mails_ref, $attached_files_ref, $links_ref, 
     $mails_from_ref, $mails_to_ref, $mails_ref,
     $websites_ref, $dates_ref) = @_;
 
-  parse_attachments($line_ref, $attachments_ref);
+  parse_attachments($line_ref, $attached_mails_ref, $attached_files_ref);
   parse_links($line_ref, $links_ref);
 
   parse_mails_from($line_ref, $mails_from_ref);
@@ -739,9 +743,23 @@ sub parse_dates
 }
 
 
+sub parse_dates_from_mails
+{
+  my ($attached_mails_ref, $dates_ref) = @_;
+
+  for my $k (@$attached_mails_ref)
+  {
+    if ($k =~ /\/Mail_(\d\d\d\d-\d\d-\d\d)T/)
+    {
+      push @$dates_ref, $1;
+    }
+  }
+}
+
+
 sub parse_attachments
 {
-  my ($line_ref, $list_ref) = @_;
+  my ($line_ref, $mails_ref, $files_ref) = @_;
 
   my @a = split /\[\[/, $$line_ref;
   return unless $#a > 0;
@@ -751,7 +769,14 @@ sub parse_attachments
     if ($e =~ /^attachment:([^]]*)\]\]/)
     {
       my @b = split /\|/, $1;
-      push @$list_ref, $b[0];
+      if ($b[0] =~/\/Mail_\d\d\d\d-\d\d-\d\d/)
+      {
+        push @$mails_ref, $b[0];
+      }
+      else
+      {
+        push @$files_ref, $b[0];
+      }
     }
   }
 
