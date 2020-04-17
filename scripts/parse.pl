@@ -218,6 +218,8 @@ sub respace_mail
   $$line_ref =~ s/\s+/ /g;
   $$line_ref =~ s/^\s+//;
   $$line_ref =~ s/\s+$//;
+
+  $$line_ref =~ s/mailto://g;
 }
 
 
@@ -237,7 +239,6 @@ sub parse_mail
     {
       $name = $1;
       $mail = $2;
-      $mail = $1 if $mail =~ /^mailto:(.*)/;
     }
   }
   elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s+<(.*)>\s*$/)
@@ -248,7 +249,6 @@ sub parse_mail
     {
       $name = $1;
       $mail = $2;
-      $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
     }
   }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s+\((.*)\)\s*$/)
@@ -259,10 +259,9 @@ sub parse_mail
     {
       $name = $1;
       $mail = $2;
-      $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
     }
   }
-  elsif ($line =~ /^\s*(.*)\s+\[\[mailto:(.*)\]\]\s*$/)
+  elsif ($line =~ /^\s*(.*)\s+\[\[(.*)\]\]\s*$/)
   {
     # Sören Hein [[mailto:sh@mig.ag]] (WTF?)
     $name = $1;
@@ -274,7 +273,6 @@ sub parse_mail
     # 'Sören Hein [mig.ag]'
     $name = $1;
     $mail = $2;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
   }
   elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s*$/)
   {
@@ -282,7 +280,6 @@ sub parse_mail
     # Sören Hein [mig.ag]
     $name = $1;
     $mail = $2;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
   }
   elsif ($line =~ /^\s*'(.*)\s+\((.*)\)'\s*$/)
   {
@@ -290,7 +287,6 @@ sub parse_mail
     # 'Sören Hein (sh@mig.ag)'
     $name = $1;
     $mail = $2;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
   }
   elsif ($line =~ /^\s*(.*)\s+\((.*)\)\s*$/)
   {
@@ -298,7 +294,7 @@ sub parse_mail
     # Sören Hein (sh@mig.ag)
     $name = $1;
     $mail = $2;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
+    # $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
     if ($mail !~ /\@/)
     {
       # Sören Hein (E-Mail)
@@ -320,8 +316,6 @@ sub parse_mail
 
     $name = $1 if $name =~ /^"(.*)"$/;
     $name = $1 if $name =~ /^'(.*)'$/;
-    $name = $1 if $name =~ /^\s*mailto:(.*)/;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
   }
   elsif ($line =~ /^\s*mailto:(.*)\s+mailto:(.*)\s*$/)
   {
@@ -340,7 +334,6 @@ sub parse_mail
     # <sh@mig.ag>
     # <mailto:sh@mig.ag>
     $mail = $1;
-    $mail = $1 if $mail =~ /^\s*mailto:(.*)/;
   }
   elsif ($line =~ /^\s*\((.*)\)/)
   {
