@@ -6,6 +6,8 @@ use HTML::FormatText;
 
 require './names.pl';
 
+my $DEBUG_MAIL = 0;
+
 # Parse some fields out of Wiki pages.
 
 if ($#ARGV != 0)
@@ -116,7 +118,6 @@ sub parse_embedded_HTML
   {
     parse_runon_line_to_text(\$text);
   }
-# print $text;
 
   my @lines = split /\n/, $text;
   for my $line (@lines)
@@ -126,7 +127,6 @@ sub parse_embedded_HTML
     next if $line =~ /^\s+$/;
     $line =~ s/[^\x00-\x7f]//g; # Wide characters
     push @$lines_ref, $line;
-# print "LINE .$line.\n";
   }
 }
 
@@ -234,6 +234,30 @@ sub respace_mail
 }
 
 
+sub pure_comma_text
+{
+  my ($name, $list_ref) = @_;
+  my @a = split ',', $name;
+  return 0 unless $#a > 0;
+
+  my @b;
+  my $found = 0;
+  for my $n (@a)
+  {
+    $n =~ s/^\s+//;
+    $n =~ s/\s+$//;
+    my $m = parse_MIG_name($n);
+    push @b, $m;
+    $found = 1 if $m ne $n;
+  }
+
+  return 0 unless $found;
+
+  push @$list_ref, $_ for @b;
+  return 1;
+}
+
+
 sub parse_mail
 {
   my ($line, $list_ref) = @_;
@@ -269,6 +293,36 @@ sub parse_mail
       $mail = $2;
     }
   }
+  elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s+\((.*)\)\s*$/)
+  {
+    # Sören Hein [sh@mig.ag] (sh@mig.ag)
+    if ($2 eq $3)
+    {
+      $name = $1;
+      $mail = $2;
+    }
+  }
+  elsif ($line =~ /^\s*(.*)\s+\[(.*)\]\s+\[(.*)\]\s*$/)
+  {
+    # Sören Hein [sh@mig.ag] [sh@mig.ag]
+    if ($2 eq $3)
+    {
+      $name = $1;
+      $mail = $2;
+    }
+  }
+  elsif ($line =~ /^\s*<(.*)>\s+\((.*)\)\s*$/)
+  {
+    # <sh@mig.ag> (sh@mig.ag)
+    $name = $1;
+    $mail = $2;
+  }
+  elsif ($line =~ /^\s*<(.*)>\s+<(.*)>\s*$/)
+  {
+    # <sh@mig.ag> <sh@mig.ag>
+    $name = $1;
+    $mail = $2;
+  }
   elsif ($line =~ /^\s*(.*)\s+\[\[(.*)\]\]\s*$/)
   {
     # Sören Hein [[sh@mig.ag]] (WTF?)
@@ -292,6 +346,12 @@ sub parse_mail
       $name .= " ($mail)";
       $mail = "";
     }
+  }
+  elsif ($line =~ /^<(\S+)\s*<(.+)>\s*>$/)
+  {
+    # <sh@mig.ag<sh@mig.ag>> (WTF?)
+    $name = $1;
+    $mail = $2;
   }
   elsif ($line =~ /^\s*(.*)\s+<(.*)>\s*$/)
   {
@@ -360,26 +420,45 @@ sub parse_mail
     return;
   }
 
-# print "GOT .$name., .$mail.\n";
+  if ($mail =~ /^\//)
+  {
+    # Probably a wrong web address that is really a mail.
+    $mail =~ s/^\/+//;
+  }
+
+print "GOT .$name., .$mail.\n" if $DEBUG_MAIL;
 
   $name = parse_MIG_name($name) if $name ne "";
   $mail = parse_MIG_mail($mail) if $mail ne "";
 
 
-  if ($name eq $mail)
+  if (lc($name) eq lc($mail))
   {
     $mail = "";
   }
 
-# print "FOUND .$name., .$mail.\n";
+print "FOUND .$name., .$mail.\n" if $DEBUG_MAIL;
 
   my $res;
   if ($mail eq "")
   {
+    # Try to split on commas anyway and check whether at least
+    # one entry is a MIG one.
+    return if pure_comma_text($name, $list_ref);
+
     $res = $name;
   }
   elsif ($name eq "")
   {
+    if ($mail !~ /^MIG: /)
+    {
+      $mail =~ /\@(.*)/;
+      return unless defined $1;
+      my $trail = $1;
+      return unless $trail =~ /\./; # Must contain a dot
+      return unless ($trail =~ /[A-Za-z]/); # Not just numbers.
+    }
+
     $res = $mail;
   }
   else
@@ -387,7 +466,9 @@ sub parse_mail
     $res = "$name ($mail)";
   }
 
-# print "RES .$res.\n";
+  return if ($res =~ /undisclosed/i || $res =~ /verborgen/i);
+
+print "RES .$res.\n" if $DEBUG_MAIL;
   push @$list_ref, $res;
 }
 
@@ -399,6 +480,9 @@ sub clean_line
   $line =~ s/^\s+//;
   $line =~ s/\s+$//;
   $line =~ s/\xc2\xa0/ /g;
+  $line=~ s/%20/ /g;
+  $line =~ s/%3c/</g;
+  $line =~ s/%3e/>/g;
 
   return $line;
 }
@@ -417,7 +501,7 @@ sub parse_mails_from
 
   return if $field eq "";
 
-  if ($field =~ /(.*) Im Auftrag von (.*)/)
+  if ($field =~ /(.*) [Ii]m Auftrag von (.*)/)
   {
     my $field1 = $1;
     my $field2 = $2;
@@ -426,6 +510,7 @@ sub parse_mails_from
   }
   else
   {
+print "MAILFROM .$field.\n" if $DEBUG_MAIL;
     parse_mail($field, $list_ref);
   }
   $$line_ref = "";
@@ -521,22 +606,13 @@ sub parse_mails_to
 
   if ($#a == 0 && $a[0] =~ /,/)
   {
-# print "HERE .$$line_ref.\n";
     # Find quoted ranges.  We won't split within them.
     my @quoteRanges = ();
     find_quote_ranges($a[0], '"', \@quoteRanges);
-# print "HERE2 .$$line_ref.\n";
     find_quote_ranges($a[0], "'", \@quoteRanges);
-# print "HERE3 .$$line_ref.\n";
-
-if ($#quoteRanges >= 0)
-{
-  # print "QUOTE\n";
-}
 
     my @commas;
     find_quotable_commas($a[0], \@quoteRanges, \@commas);
-# print "HERE4 .$$line_ref.\n";
 
     my $index = 0;
     my @b;
@@ -555,17 +631,7 @@ if ($#quoteRanges >= 0)
     }
 
     push @b, substr($a[0], $index);
-
-    if ($#b > 0)
-    {
-# print "FOUND A COMMA\n";
-      @a = @b;
-    }
-    # else
-    # {
-# print "NO COMMA\n";
-    # }
-
+    @a = @b if $#b > 0;
   }
 
   my $found = 0;
@@ -574,11 +640,8 @@ if ($#quoteRanges >= 0)
     next if $m eq "";
     $found = 1;
     $m =~ s/"//g;
-# print "MAILTO .$m.\n";
-if ($m =~ /Motsch/)
-{
-  # print "HERE\n";
-}
+
+    print "MAILTO .$m.\n" if $DEBUG_MAIL;
     parse_mail($m, $list_ref);
   }
 
@@ -591,6 +654,8 @@ sub parse_mails
   my ($line_ref, $list_ref) = @_;
 
   $$line_ref = clean_line($$line_ref);
+  $$line_ref =~ s/\|\|(\w)/ $1/g;
+  $$line_ref =~ s/(\w)\|\|/$1 /g;
 
   # Only look for the actual mail with the @ symbol, not for the name.
   my @a = split /[ ,;:\=\<\>\(\)"\[\]]+/, $$line_ref;
@@ -598,7 +663,7 @@ sub parse_mails
   for my $m (@a)
   {
     next unless $m =~ /\@/;
-# print "FREETEXT .$m.\n";
+    print "FREETEXT .$m.\n" if $DEBUG_MAIL;
     $m =~ s/\.$//;
     parse_mail($m, $list_ref);
   }
