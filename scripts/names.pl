@@ -112,9 +112,9 @@ sub set_MIG
     # Dr. Sören Hein
     [ 'MIG: SH',
       [ "Sören Hein", "Hein, Sören", "Hein, SÃ¶ren", "Soren",
-        "<Hein> , Sören", "Dr. Sören Hein"],
+        "<Hein> , Sören", "Dr. Sören Hein", "Soren Hein"],
       [ 'sh@mig.ag', 'soren.hein@mig.ag', 'soeren.hein@mig.ag', 
-        'sh@hs984.hostedoffice.ag']
+        'sh@hs984.hostedoffice.ag', 'soren.hein@gmail.com']
     ],
 
 

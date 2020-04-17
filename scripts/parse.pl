@@ -5,6 +5,7 @@ use HTML::TreeBuilder;
 use HTML::FormatText;
 
 require './names.pl';
+require './websites.pl';
 
 my $DEBUG_MAIL = 0;
 
@@ -19,6 +20,9 @@ if ($#ARGV != 0)
 
 my (%MIG_names, %MIG_mails);
 set_MIG(\%MIG_names, \%MIG_mails);
+
+my %websites_skip;
+set_websites(\%websites_skip);
 
 my $file = $ARGV[0];
 
@@ -171,7 +175,7 @@ sub process_line
   parse_mails_to($line_ref, $mails_to_ref);
   parse_mails($line_ref, $mails_ref);
 
-  parse_websites($line_ref, $websites_ref);
+  parse_websites(\%websites_skip, $line_ref, $websites_ref);
   parse_dates($line_ref, $dates_ref);
 }
 
@@ -757,7 +761,7 @@ sub parse_attachments
 
 sub parse_websites
 {
-  my ($line_ref, $list_ref) = @_;
+  my ($web_skip_ref, $line_ref, $list_ref) = @_;
 
   my @a = split /[,;|\s\xa0]+/, $$line_ref;
   for my $e (@a)
@@ -766,10 +770,34 @@ sub parse_websites
     {
       $e =~ s/\.$//;
       $e =~ s/\/$//;
-      next if $e =~ /facebook/i;
-      next if $e =~ /linkedin/i;
-      next if $e =~ /twitter/i;
-      next if $e =~ /www.mig.ag/i;
+
+      my $hit = 0;
+      for my $k (keys %$web_skip_ref)
+      {
+        $hit = 1 if $e =~ /$k/i;
+      }
+      next if $hit;
+
+      $e =~ s/^.*http:\/([^\/].*)/http:\/$1/g; # Fix http:/
+      $e =~ s/^.*(http\/\/)/$1:/g; # Fix http//
+
+      $e =~ s/^.*(http:\/\/.*)/$1/; # Nothing in front of http
+      $e =~ s/^.*(https:\/\/.*)/$1/; # Nothing in front of https
+
+      $e =~ s/^.*(www.*)/$1/; # Everything in front of www
+
+      $e =~ s/-$//; # Trailing -
+
+      $e =~ s/^<([^>]*)>$/$1/; # <...>
+      $e =~ s/^\(([^)*])\)*>$/$1/; # (...)
+
+      $e =~ s/^http:\/\///;
+      $e =~ s/^https:\/\///;
+
+      $e =~ s/\)$//; # Trailing )
+      $e =~ s/>$//; # Trailing >
+      $e =~ s/\/$//; # Trailing /
+
       push @$list_ref, $e;
     }
   }
