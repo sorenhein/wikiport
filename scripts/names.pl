@@ -44,7 +44,7 @@ sub set_MIG
         "Dipl. Ing. Jürgen Kosch", "JürgenKosch" ],
       [ 'jk@mig.ag', 'juergen.kosch@mig.ag', 'j.kosch@mig.ag', 
         'jurgen.kosch@mig.ag', 'kosch@mig.ag', 'jg@mig.ag', 
-        'jko@mig.ag', 'jk@hs984.hostedoffice.ag' ]
+        'jko@mig.ag', 'kj@mig.ag', 'jk@hs984.hostedoffice.ag' ]
     ],
 
     # Kristian Schmidt-Garve
@@ -65,7 +65,7 @@ sub set_MIG
       [ "Matthias Kromayer", "Kromayer, Matthias", "Kromayer Matthias",
         "Matthias Kromayer (extern)", "Dr. Kromayer (extern) Matthias" ],
       [ 'mk@mig.ag', 'm.k@mig.ag', 'matthias.kromayer@mig.ag', 
-        'kromayer@mig.ag', 'mkr@mig.ag' ]
+        'kromayer@mig.ag', 'mkr@mig.ag', 'mk@hs984.hostedoffice.ag']
     ],
 
     # Michael Motschmann
@@ -73,7 +73,7 @@ sub set_MIG
       [ "Michael Motschmann", "Michael Motschmann - MIG AG Fond",
         "Motschmann, Michael"],
       [ 'mm@mig.ag', 'michael.motschmann@mig.ag', 'michael@mig.ag',
-        'motschmann@mig.ag', 'mmo@mig.ag']
+        'motschmann@mig.ag', 'mmo@mig.ag', 'mm@hs984.hostedoffice.ag']
     ],
 
     # Dr. Oliver Kahl

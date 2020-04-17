@@ -301,6 +301,20 @@ sub parse_mail
     # (sh@mig.ag)
     $mail = $1;
   }
+  elsif ($line =~ /^\s*(.*)\s+(.*)\s*$/)
+  {
+    # Sören Hein sh@mig.ag
+    my ($n, $m) = ($1, $2);
+    if ($m =~ /\@/)
+    {
+      $name = $n;
+      $mail = $m;
+    }
+    else
+    {
+      $name = $line;
+    }
+  }
   else
   {
     $name = $line;
@@ -317,6 +331,22 @@ sub parse_mail
   {
     $mail = $name;
     $name = "";
+  }
+
+  if ($mail =~ /^(.*)<(.*)>\s*$/)
+  {
+    # sh@mig.ag<sh@mig.ag> (WTF?).
+    my ($c1, $c2) = ($1, $2);
+    if ($c1 eq $c2)
+    {
+      $mail = $c1;
+    }
+  }
+
+  if ($mail =~ /^@/)
+  {
+    # Probably something else, @Jörg, @€2.25k/unit, ...
+    return;
   }
 
 # print "GOT .$name., .$mail.\n";
