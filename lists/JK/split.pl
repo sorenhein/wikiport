@@ -3,6 +3,10 @@
 use strict;
 use warnings;
 
+use File::Basename;
+use File::Path qw/make_path/;
+
+
 # Splits offs groups of Wiki pages from the central list.
 
 if ($#ARGV != 2)
@@ -27,10 +31,23 @@ while (my $line = <$fh>)
   chomp $line;
   $line =~ s///g;
 
+  # Take the complete match if it's there.  Otherwise go by
+  # the Wiki root and take all Wiki pages with the input root.
+
+print "line .$line.\n";
+
+  if (defined $groups{$line})
+  {
+print "   direct hit\n";
+    push @{$pages{$line}}, $line;
+    next;
+  }
+
   my @a = split '/', $line;
   next unless $#a >= 0;
   if (defined $groups{$a[0]})
   {
+print "   leading hit\n";
     push @{$pages{$a[0]}}, $line;
   }
   else
@@ -48,6 +65,11 @@ mkdir $outdir unless -d $outdir;
 for my $g (sort keys %pages)
 {
   my $fout = $outdir . '/' . $g . '.txt';
+
+  # Make any directories on the path that don't exist.
+  my $dir = dirname($fout);
+  make_path($dir);
+
   open my $fo, ">", $fout or die "Cannot open $fout: $!";
   for my $p (@{$pages{$g}})
   {

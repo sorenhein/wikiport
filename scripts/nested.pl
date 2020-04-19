@@ -16,6 +16,12 @@ list_pages(\%pages);
 my %pages_short;
 shorten_pages(\%pages, \%pages_short);
 
+# Dead links don't have to be downloaded again.
+my %deadlinks;
+my $deadfile = "deadlinks.txt";
+read_file($deadfile, \%deadlinks);
+
+
 my (%deep_links, %top_links);
 
 for my $page (keys %pages)
@@ -30,6 +36,7 @@ for my $page (keys %pages)
   {
     chomp $line;
     $line =~ s///g;
+    next if $line =~ /^##/; # Skip comments
     parse_links(\$line, $base, $basebase, \%deep_links, \%top_links);
   }
   close $fh;
@@ -94,6 +101,20 @@ sub shorten_pages
 }
 
 
+sub read_file
+{
+  my ($deadfile, $deadlinks_ref) = @_;
+  open my $fd, "<", $deadfile or die "Cannot open $deadfile: $!";
+  while (my $line = <$fd>)
+  {
+    chomp $line;
+    $line =~ s///g;
+    $deadlinks_ref->{$dealdir . $line} = 1;
+  }
+  close $fd;
+}
+
+
 sub parse_links
 {
   my ($line_ref, $base, $basebase, $deep_links_ref, $top_links_ref) = @_;
@@ -109,26 +130,35 @@ sub parse_links
     if ($e =~ /([^]]*)\]\]/)
     {
       my @b = split /\|/, $1;
+      # Add our ugly __ directory format.
+      my $underscored = $b[0];
+      $underscored =~ s/\//___\//g;
+
       if ($b[0] =~ /^\//)
       {
-        my $cand = "$base$b[0]";
-        $deep_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
+        my $cand = "$base$underscored";
+        $deep_links_ref->{$cand} = 1 unless 
+          (defined $pages_short{$cand} ||
+           defined $deadlinks{$cand});
       }
       else
       {
-        my $cand = "$dealdir$b[0]";
+        my $cand = "$dealdir$underscored";
 
         # Could still be a deep link into our own structure,
         # but stated as an absolute link.  So APK may link to
         # [[APK/Lizenzmodell].
         if ($b[0] =~ /^$basebase\//)
         {
-
-          $deep_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
+          $deep_links_ref->{$cand} = 1 unless 
+            (defined $pages_short{$cand} ||
+             defined $deadlinks{$cand});
         }
         else
         {
-          $top_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
+          $top_links_ref->{$cand} = 1 unless 
+            (defined $pages_short{$cand} &&
+             defined $deadlinks{$cand});
         }
       }
     }

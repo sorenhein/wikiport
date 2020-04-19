@@ -17,7 +17,15 @@ foreach i (categories/*)
   mv ${temp2} ${temp1}
 end
 
-wc ${temp1} ${out}/*/*.txt
+echo "Left over:"
+wc ${temp1} 
+echo "Found:"
+foreach i (ordered/*)
+  echo $i
+  cat $i/* | wc
+end
+echo "Found total:"
+cat ordered/*/* | wc
 echo ""
 echo "vs."
 echo ""

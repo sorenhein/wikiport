@@ -3,6 +3,7 @@
 # Fetches pages from MIG wiki:
 # python3 fetch.py pages.txt
 
+import os
 import os.path
 import sys
 import re
@@ -26,7 +27,7 @@ cookieFile = 'cookies.txt'
 sleepyTime = 12
 
 outDir = "../data/deals"
-foundDir = "found"
+foundDir = "straydeals"
 missedDir = "notfound"
 
 ### End constants
@@ -54,15 +55,17 @@ def parseCookieFile(cfile):
   return cookies
 
 
-def writeText(odir, ofoundfile, tag, lines):
+def writeText(odir, ofoundfile, tag, finalTag, lines):
   """Fix and write the lines to the output file."""
-  mtext = "Page " + tag + " not found."
+  mtext = "Page " + finalTag + " not found."
   if (len(lines) <= len(mtext) + 2 and lines[:len(mtext)+1] == mtext):
     ofile = odir + '/' + missedDir + '/miss.txt'
     of = open(ofile, 'a')
     of.write(tag + "\n")
     of.close()
   else:
+    # Create any missing directories on the path.
+    os.makedirs(os.path.dirname(ofoundfile), exist_ok = True)
     of = open(ofoundfile, 'w')
     of.write(lines + "\n")
     of.close()
@@ -80,15 +83,17 @@ for line in lines:
   tag = line.rstrip()
 
   # tag may have spaces that need to be converted into %20.
-  spaceTag = tag
-  spaceTag.replace(' ', '%20')
+  spaceTag = tag.replace(' ', '%20')
+
+  # ___ signifies a directory (to avoid aliasing).
+  finalTag = spaceTag.replace("___", "")
 
   ofoundfile = outDir + '/' + foundDir + '/' + tag + '.txt'
   if (os.path.isfile(ofoundfile)):
     print(tag + ' already exists')
   else:
-    r = requests.get(baseURL + '/' + spaceTag + '?' + action, cookies=cookies)
-    print(tag + ' read')
-    writeText(outDir, ofoundfile, spaceTag, r.text)
+    r = requests.get(baseURL + '/' + finalTag + '?' + action, cookies=cookies)
+    print('Read ' + finalTag)
+    writeText(outDir, ofoundfile, spaceTag, finalTag, r.text)
     time.sleep(sleepyTime)
 

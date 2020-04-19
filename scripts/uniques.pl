@@ -85,7 +85,7 @@ if (! defined $line2)
     $used1 = 0;
     $used2 = 1;
   }
-  elsif ($done2 || $line1 lt $line2)
+  elsif ($line1 lt $line2)
   {
     push @unique1, $line1;
     $used1 = 1;

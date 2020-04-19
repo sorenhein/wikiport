@@ -45,6 +45,7 @@ while (my $fline = <$fh>)
   {
     chomp $line;
     $line =~ s///g;
+    next if $line =~ /^##/; # Skip comments
 
     if ($line =~ /^\{\{\{#!html/)
     {
