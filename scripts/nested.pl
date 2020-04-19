@@ -5,47 +5,47 @@ use File::Find qw(finddepth);
 
 # Find missing pages from nested links in what we've got so far.
 # As we don't know what's hiding, we don't recurse.
-# parsed.text is the output from parse.pl on all deals.
-
-if ($#ARGV != 0)
-{
-  print "Usage: nested.pl ignore > out.txt\n";
-  exit;
-}
+#
+# Usage: perl nested.pl > out.txt
 
 my $dealdir = "../data/deals/found/";
 
-my @pages;
-list_pages(\@pages);
+my %pages;
+list_pages(\%pages);
 
-my (@deep_links, @top_links);
+my %pages_short;
+shorten_pages(\%pages, \%pages_short);
 
-for my $page (@pages)
+my (%deep_links, %top_links);
+
+for my $page (keys %pages)
 {
   my $base = $page;
   $base =~ s/.txt$//;
+  my $basebase = $base;
+  $basebase =~ s/^$dealdir//;
 
   open my $fh, "<", $page or die "Cannot open $page $!";
   while (my $line = <$fh>)
   {
     chomp $line;
     $line =~ s///g;
-    parse_links(\$line, $base, \@deep_links, \@top_links);
+    parse_links(\$line, $base, $basebase, \%deep_links, \%top_links);
   }
   close $fh;
 }
 
-# Strip the leading directory.
-s/^$dealdir// for @deep_links;
-s/^$dealdir// for @top_links;
+my (%deep_short, %top_short);
+shorten_links(\%deep_links, \%deep_short);
+shorten_links(\%top_links, \%top_short);
 
-for my $link (sort @deep_links)
+for my $link (sort keys %deep_short)
 {
   print "$link\n";
 }
 print "\n";
 
-for my $link (sort @top_links)
+for my $link (sort keys %top_short)
 {
   print "$link\n";
 }
@@ -54,7 +54,7 @@ for my $link (sort @top_links)
 
 sub list_pages
 {
-  my ($list_ref) = @_;
+  my ($pages_ref) = @_;
 
   # https://stackoverflow.com/questions/2476019/how-can-i-recursively-read-out-directories-in-perl
   
@@ -62,17 +62,41 @@ sub list_pages
     sub
     {
       return if ($_ eq '.' || $_ eq '..');
-      push @$list_ref, $File::Find::name;
+      my $name = $File::Find::name;
+      $pages_ref->{$name} = 1;
     },
     $dealdir
   );
+}
 
+
+sub shorten_links
+{
+  my ($links_ref, $short_ref) = @_;
+  for my $k (keys %$links_ref)
+  {
+    my $s = $k;
+    $s =~ s/^$dealdir//;
+    $short_ref->{$s} = 1;
+  }
+}
+
+
+sub shorten_pages
+{
+  my ($pages_ref, $short_ref) = @_;
+  for my $k (keys %$pages_ref)
+  {
+    my $s = $k;
+    $s =~ s/.txt$//;
+    $short_ref->{$s} = 1;
+  }
 }
 
 
 sub parse_links
 {
-  my ($line_ref, $base, $deep_links_ref, $top_links_ref) = @_;
+  my ($line_ref, $base, $basebase, $deep_links_ref, $top_links_ref) = @_;
 
   my @a = split /\[\[/, $$line_ref;
   return unless $#a > 0;
@@ -80,17 +104,32 @@ sub parse_links
   for my $e (@a)
   {
     next if $e =~ /^attachment:([^]]*)\]\]/;
+    next if $e =~ /^mailto/;
 
     if ($e =~ /([^]]*)\]\]/)
     {
       my @b = split /\|/, $1;
       if ($b[0] =~ /^\//)
       {
-        push @$deep_links_ref, "$base$b[0]";
+        my $cand = "$base$b[0]";
+        $deep_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
       }
       else
       {
-        push @$top_links_ref, "$dealdir$b[0]";
+        my $cand = "$dealdir$b[0]";
+
+        # Could still be a deep link into our own structure,
+        # but stated as an absolute link.  So APK may link to
+        # [[APK/Lizenzmodell].
+        if ($b[0] =~ /^$basebase\//)
+        {
+
+          $deep_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
+        }
+        else
+        {
+          $top_links_ref->{$cand} = 1 unless defined $pages_short{$cand};
+        }
       }
     }
   }
