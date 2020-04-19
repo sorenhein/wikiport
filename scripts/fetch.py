@@ -3,6 +3,7 @@
 # Fetches pages from MIG wiki:
 # python3 fetch.py pages.txt
 
+import os.path
 import sys
 import re
 import requests
@@ -53,7 +54,7 @@ def parseCookieFile(cfile):
   return cookies
 
 
-def writeText(odir, tag, lines):
+def writeText(odir, ofoundfile, tag, lines):
   """Fix and write the lines to the output file."""
   mtext = "Page " + tag + " not found."
   if (len(lines) <= len(mtext) + 2 and lines[:len(mtext)+1] == mtext):
@@ -62,8 +63,7 @@ def writeText(odir, tag, lines):
     of.write(tag + "\n")
     of.close()
   else:
-    ofile = odir + '/' + foundDir + '/' + tag + '.txt'
-    of = open(ofile, 'w')
+    of = open(ofoundfile, 'w')
     of.write(lines + "\n")
     of.close()
 
@@ -83,15 +83,12 @@ for line in lines:
   spaceTag = tag
   spaceTag.replace(' ', '%20')
 
-  print('Getting ' + tag)
-  r = requests.get(baseURL + '/' + spaceTag + '?' + action, cookies=cookies)
-  writeText(outDir, spaceTag, r.text)
+  ofoundfile = outDir + '/' + foundDir + '/' + tag + '.txt'
+  if (os.path.isfile(ofoundfile)):
+    print(tag + ' already exists')
+  else:
+    r = requests.get(baseURL + '/' + spaceTag + '?' + action, cookies=cookies)
+    print(tag + ' read')
+    writeText(outDir, ofoundfile, spaceTag, r.text)
+    time.sleep(sleepyTime)
 
-  time.sleep(sleepyTime)
-
-# Remove comments
-
-# Read
-# . shared
-# . Affinity-only
-# . Wiki-only (split into dead and alive) (split alive into deals and other)

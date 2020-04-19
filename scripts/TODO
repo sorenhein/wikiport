@@ -1,20 +1,4 @@
-4000 overlapping pages:
-Do they exist?
-
-500 non-pages of Oliver:
-What should they really be?
-
-1000 pages of Jürgen:
-Do they "really" exist?
-Are they really deals?
-
-Some duplicates:
-AlgenIndoor
-Antagonis
-BioDiesel3
-...more?
-
-Some should be split into several rounds (A, B, ...)
+Some deals should be split into several rounds (A, B, ...)
 
 Compare dates to Oliver's
 
@@ -24,6 +8,50 @@ Use field Reasons to decline better
 
 New segmentation of MIG deal categories
 
-Oliver's link: When space, %20 (perl will still look it up!)
-
 Parse sub-directories of a deal for further information
+- A wiki page is like a directory and a file in one
+- In Python, a link goes in company__ directory
+- Make a list of all subs (perl script)
+- Don't re-download a page in Python that we already have
+- In parse.pl, only scan top-level pages
+- But recurse somehow over embedded pages
+- Download at least the mail attachments?
+
+Play around with getting the HTML and preserving links (rebasing them).
+
+In the end, check that "all deal pages" are referenced in Affinity.
+
+
+
+
+Get to the point where all (4355?) Affinity deals are downloaded, with miss.txt empty.
+
+Move portfolio out of deal list into portfolio.txt
+
+Segments aren't right, look at Affiris
+Now there are no links at all?
+Are the many pages that are not linked strictly hierarchically?
+
+Do use the permission knowledge (PipelineGroup as well?)
+
+
+2020-04-19, 07:40
+-----------------
+4884 entries in Deal List
+4841 entries in export
+  47 entries without info.wiki.ag links (probably all mine)
+
+4350 unique links, so
+ 491 duplicates (Prüfung_...)
+
+4350 files in deals/found
+
+
+Order
+-----
+* Export from Affinity
+* perl getfile.pl 2020-04-19-07-40/list.csv > 2020-04-19-07-40/list.txt
+* cp !$ ../../scripts
+* sort list.txt | uniq > a.txt; mv a.txt list.txt
+* run python3 fetch.py list.txt
+* In ../data/deals/found directory: wc | ls.  Maybe also check content.
