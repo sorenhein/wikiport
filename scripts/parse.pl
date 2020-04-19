@@ -930,8 +930,16 @@ sub print_date_segments
 
     if ($val1 - $valprev > $inactive_time)
     {
-      print "$d[$i0] to $d[$index-1]: Approx. ",
-        $valprev - $val0, " days in segment\n";
+      if ($valprev == $val0)
+      {
+        print "$d[$i0] to $d[$index-1]: Approx. ",
+          1, " day in segment\n";
+      }
+      else
+      {
+        print "$d[$i0] to $d[$index-1]: Approx. ",
+          $valprev - $val0, " days in segment\n";
+      }
 
       $seen = 1;
       $looking = 1;
@@ -939,23 +947,33 @@ sub print_date_segments
       if ($index == $#$dref)
       {
         print "$d[$index] to $d[$index]: Approx. ",
-          0, " days in segment\n";
+          1, " day in segment\n";
       }
     }
     elsif ($index == $#$dref)
     {
-      print "$d[$i0] to $d[$index]: Approx. ",
-        $val1 - $val0, " days in segment\n";
+      if ($val1 == $val0)
+      {
+        print "$d[$i0] to $d[$index]: Approx. ",
+          1, " day in segment\n";
+      }
+      else
+      {
+        print "$d[$i0] to $d[$index]: Approx. ",
+          $val1 - $val0 + 1, " days in segment\n";
+      }
 
       last;
+    }
+    else
+    {
+      $index++;
     }
       
     $yprev = $y1;
     $mprev = $m1;
     $dprev = $d1;
     $valprev = $val1;
-
-    $index++;
   }
   
   print "\n" if $seen;
