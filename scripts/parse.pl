@@ -9,6 +9,7 @@ require './websites.pl';
 
 my $DEBUG_MAIL = 0;
 my $inactive_time = 120;
+my $prefix = "../data/deals/found/";
 
 # Parse some fields out of Wiki pages.
 
@@ -33,6 +34,7 @@ while (my $fline = <$fh>)
 {
   chomp $fline;
   $fline =~ s///g;
+  $fline = $prefix . $fline . ".txt";
 
   open my $fi, "<", $fline or die "Cannot open $fline: $!";
 
@@ -96,10 +98,10 @@ while (my $fline = <$fh>)
   print_date_range(\@dates);
   print_date_segments(\@dates);
 
+  print_list(\@links, "Links");
   print_list(\@attached_mails, "Attached mails");
   print_list(\@attached_files, "Attached files");
   print_count_list(\@websites, "Websites");
-  print_list(\@links, "Links");
   print "\n\n";
 
 }
@@ -174,8 +176,10 @@ sub process_line
     $mails_from_ref, $mails_to_ref, $mails_ref,
     $websites_ref, $dates_ref) = @_;
 
-  parse_attachments($line_ref, $attached_mails_ref, $attached_files_ref);
-  parse_links($line_ref, $links_ref);
+  parse_links_and_attachments($line_ref, 
+    $attached_mails_ref, $attached_files_ref, $links_ref);
+  # parse_attachments($line_ref, $attached_mails_ref, $attached_files_ref);
+  # parse_links($line_ref, $links_ref);
 
   parse_mails_from($line_ref, $mails_from_ref);
   parse_mails_to($line_ref, $mails_to_ref);
@@ -759,9 +763,9 @@ sub parse_dates_from_mails
 }
 
 
-sub parse_attachments
+sub parse_links_and_attachments
 {
-  my ($line_ref, $mails_ref, $files_ref) = @_;
+  my ($line_ref, $mails_ref, $files_ref, $links_ref) = @_;
 
   my @a = split /\[\[/, $$line_ref;
   return unless $#a > 0;
@@ -779,6 +783,11 @@ sub parse_attachments
       {
         push @$files_ref, $b[0];
       }
+    }
+    elsif ($e =~ /([^]]*)\]\]/)
+    {
+      my @b = split /\|/, $1;
+      push @$links_ref, $b[0];
     }
   }
 
@@ -834,26 +843,6 @@ sub parse_websites
 }
 
 
-sub parse_links
-{
-  my ($line_ref, $list_ref) = @_;
-
-  my @a = split /\[\[/, $$line_ref;
-  return unless $#a > 0;
-
-  for my $e (@a)
-  {
-    next if $e =~ /^attachment:/;
-    if ($e =~ /([^]]*)\]\]/)
-    {
-      my @b = split /\|/, $1;
-      push @$list_ref, $b[0];
-    }
-  }
-  $$line_ref =~ s/\[\[[^]]*\]\]//g;
-}
-
-
 sub print_sub_header
 {
   my $name = pop;
@@ -891,7 +880,7 @@ sub print_date_range
   $d[$#d] =~ /(\d\d\d\d)-(\d\d)-(\d\d)/;
   my ($y2, $m2, $d2) = ($1, $2, $3);
 
-  my $diff = 365 * ($y2-$y1) + 30 * ($m2-$m1) + ($d2-$d1);
+  my $diff = 365 * ($y2-$y1) + 30 * ($m2-$m1) + ($d2-$d1) + 1;
 
   print "Approx. $diff days in process\n\n";
 }
@@ -962,6 +951,7 @@ sub print_date_segments
         print "$d[$i0] to $d[$index]: Approx. ",
           $val1 - $val0 + 1, " days in segment\n";
       }
+      $seen = 1;
 
       last;
     }
