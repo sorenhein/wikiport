@@ -4,19 +4,29 @@ Compare dates to Oliver's
 
 Can Klaus Feix be an owner without having an account?
 
-Use field Reasons to decline better
-
-New segmentation of MIG deal categories
-
-
-
 In parse.pl, perhaps recurse within own tree of a deal.
+
+On deals side:
+- Parse *all* directories
+- State own links to deeper directories
+- State missing links only if in no other directory
+- Count number of top-level entries in each directory
+- Count total number of file entries in each directory
+
+On JK side:
+- Count number of file entries in each directory
 
 Subtract all the good ones from JK list.
 
 Play around with getting the HTML and preserving links (rebasing them).
 
 In the end, check that "all deal pages" are referenced in Affinity.
+
+The deadlinks.txt file actually has files that exist(?) but can't
+be downloaded, as well as links that point nowhere. Should separate
+these.
+
+Make a backup of categories and maybe the entire deals directory.
 
 
 Move portfolio out of deal list into portfolio.txt
@@ -31,21 +41,25 @@ the ___ back.  Maybe they should be concatenated in deadlinks.txt.
 
 Add a MIG mail user.  Use this as the source.
 
+Careful about Wiki files that only differ in their case.
+Make a list and check it manually.  Probably one of them is bad?
+
+Each deal directory should have .txt file (Prüfung_01_2010).
+Or should the unused Prüfung* files be in Jürgen's part or in some
+other tree than deals/found?
+
 Check which ones of koschcand.txt are real deals.  Perhaps use their
 groups as well.
 
-Among JK deal candidates, 3 weren't read as they differ only by case
+Among JK deal candidates, 5 weren't read as they differ only by case
 from existing ones (and Cygwin, unlike Wiki, doesn't differentiate).
 - Diacdem (DiaCdem exists)
 - Leadmacher (LEADMACHER exists)
 - Nanotemper (NanoTemper exists)
 - Tigo (TIGO exists)
+- ZeCardioTx (ZeCardioTX exists)
 
-nout.txt has the 2nd level of linked pages from the Affinity list.
-Download this from Python, into nested directory to begin with.
-Careful not to overwrite miss.txt from the Jürgen candidates
-currently running.
-
+There might be deals such as SunCoal hiding in a Prüfing sheet.
 
 2020-04-19, 13:10
 -----------------

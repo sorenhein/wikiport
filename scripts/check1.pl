@@ -8,7 +8,7 @@ my $group = "BeteiligungsPrüfungGroup";
 
 if ($#ARGV != 0)
 {
-  print "Usage: parse.pl files.txtn";
+  print "Usage: parse.pl files.txt\n";
   exit;
 }
 

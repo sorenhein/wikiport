@@ -34,11 +34,11 @@ while (my $line = <$fh>)
   # Take the complete match if it's there.  Otherwise go by
   # the Wiki root and take all Wiki pages with the input root.
 
-print "line .$line.\n";
+# print "line .$line.\n";
 
   if (defined $groups{$line})
   {
-print "   direct hit\n";
+# print "   direct hit\n";
     push @{$pages{$line}}, $line;
     next;
   }
@@ -47,7 +47,7 @@ print "   direct hit\n";
   next unless $#a >= 0;
   if (defined $groups{$a[0]})
   {
-print "   leading hit\n";
+# print "   leading hit\n";
     push @{$pages{$a[0]}}, $line;
   }
   else

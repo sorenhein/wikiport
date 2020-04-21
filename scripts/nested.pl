@@ -3,12 +3,18 @@ use warnings;
 
 use File::Find qw(finddepth);
 
+require "../lists/JK/chars.pl";
+
+
 # Find missing pages from nested links in what we've got so far.
 # As we don't know what's hiding, we don't recurse.
 #
 # Usage: perl nested.pl > out.txt
 
-my $dealdir = "../data/deals/found/";
+my $dealdir = "../data/deals/straydeals/";
+
+my %subs;
+set_chars(\%subs);
 
 my %pages;
 list_pages(\%pages);
@@ -27,6 +33,7 @@ my (%deep_links, %top_links);
 for my $page (keys %pages)
 {
   my $base = $page;
+  make_sub(\%subs, \$base);
   $base =~ s/.txt$//;
   my $basebase = $base;
   $basebase =~ s/^$dealdir//;
@@ -37,6 +44,7 @@ for my $page (keys %pages)
     chomp $line;
     $line =~ s///g;
     next if $line =~ /^##/; # Skip comments
+    make_sub(\%subs, \$line);
     parse_links(\$line, $base, $basebase, \%deep_links, \%top_links);
   }
   close $fh;
@@ -127,6 +135,11 @@ sub parse_links
     next if $e =~ /^attachment:([^]]*)\]\]/;
     next if $e =~ /^mailto/;
 
+if ($e =~ /Prüfung_01_2006/)
+{
+  # print "HERE\n";
+}
+
     if ($e =~ /([^]]*)\]\]/)
     {
       my @b = split /\|/, $1;
@@ -137,6 +150,7 @@ sub parse_links
       if ($b[0] =~ /^\//)
       {
         my $cand = "$base$underscored";
+        $cand =~ s/\s+$//;
         $deep_links_ref->{$cand} = 1 unless 
           (defined $pages_short{$cand} ||
            defined $deadlinks{$cand});
@@ -144,6 +158,7 @@ sub parse_links
       else
       {
         my $cand = "$dealdir$underscored";
+        $cand =~ s/\s+$//;
 
         # Could still be a deep link into our own structure,
         # but stated as an absolute link.  So APK may link to
@@ -157,7 +172,7 @@ sub parse_links
         else
         {
           $top_links_ref->{$cand} = 1 unless 
-            (defined $pages_short{$cand} &&
+            (defined $pages_short{$cand} ||
              defined $deadlinks{$cand});
         }
       }
