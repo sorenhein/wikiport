@@ -98,7 +98,7 @@ sub make_sub
       {
         if ($code =~ /^$k/)
         {
-          $clear = $subs{$k} . $clear;
+          $clear = $clear . $subs{$k};
           $code =~ s/^$k//;
           $found = 1;
           last;

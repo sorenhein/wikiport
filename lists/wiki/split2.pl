@@ -8,6 +8,8 @@ use File::Path qw/make_path/;
 
 
 # Splits offs groups of Wiki pages from the central list.
+# Unlike split.pl this takes into account that the groups may not
+# be at top level.  It could either be a deeper "directory" or a file.
 
 if ($#ARGV != 2)
 {
@@ -31,30 +33,37 @@ while (my $line = <$fh>)
   chomp $line;
   $line =~ s///g;
 
-  # Take the complete match if it's there.  Otherwise go by
-  # the Wiki root and take all Wiki pages with the input root.
+  # Store by the root in pages.
+  my @a = split '/', $line;
+  my $baseline = $a[0];
+
+  # Take the complete match if it's there.  Store by its root.
 
 # print "line .$line.\n";
 
   if (defined $groups{$line})
   {
 # print "   direct hit\n";
-    push @{$pages{$line}}, $line;
+    push @{$pages{$baseline}}, $line;
     next;
   }
 
-  my @a = split '/', $line;
-  next unless $#a >= 0;
-  if (defined $groups{$a[0]})
+  # Try subsets of line.
+  my $sub = "";
+  my $found = 0;
+  for (my $i = 0; $i < $#a; $i++)
   {
-# print "   leading hit\n";
-    # push @{$pages{$line}}, $line;
-    push @{$pages{$a[0]}}, $line;
+    $sub .= "/" if $i > 0;
+    $sub .= $a[$i];
+    if (defined $groups{$sub})
+    {
+      push @{$pages{$baseline}}, $line;
+      $found = 1;
+      last;
+    }
   }
-  else
-  {
-    push @rest, $line;
-  }
+
+  push @rest, $line unless $found;
 }
 
 close $fh;
