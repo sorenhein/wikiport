@@ -28,30 +28,31 @@ fieldsFile = 'fields.txt'
 orgFieldsFile = 'orgfields.txt'
 
 class Fields(Enum):
-  ListEntryId = 0,
-  OrganizationId = 1,
-  Name = 2,
-  OrganizationURL = 3,
-  MIGSector = 4,
-  Status = 5,
-  Owners = 6,
-  OwnersMail = 7,
-  Transaction = 8,
-  FundingRound = 9,
-  Amount = 10,
-  PreMoney = 11,
-  Currency = 12,
-  Quality = 13,
-  DateAdded = 14,
-  DateDecided = 15,
-  WikiURL = 16,
-  SourceType = 17,
-  SourceOrganization = 18,
-  SourceName = 19,
-  SourceNameMail = 20,
-  SourcedBy = 21,
-  SourcedByMail = 22,
-  Reason = 23
+  ListEntryId = 0
+  OrganizationId = 1
+  Name = 2
+  OrganizationURL = 3
+  MIGSector = 4
+  Status = 5
+  Owners = 6
+  OwnersMail = 7
+  Transaction = 8
+  FundingRound = 9
+  Amount = 10
+  PreMoney = 11
+  Currency = 12
+  Quality = 13
+  DateAdded = 14
+  DateDecided = 15
+  WikiURL = 16
+  SourceType = 17
+  SourceOrganization = 18
+  SourceName = 19
+  SourceNameMail = 20
+  SourceMethod = 21
+  SourcedBy = 22
+  SourcedByMail = 23
+  Reason = 24
 
 headingToEnum = {
   'List Entry Id': Fields.ListEntryId,
@@ -75,18 +76,41 @@ headingToEnum = {
   'Source Organization': Fields.SourceOrganization,
   'Source Name': Fields.SourceName,
   'Source Name (Primary Email)': Fields.SourceNameMail,
+  'Source Method': Fields.SourceMethod,
   'Sourced By': Fields.SourcedBy,
   'Sourced By (Primary Email)': Fields.SourcedByMail,
   'Reason to decline/ lost': Fields.Reason }
 
-class FieldInfo:
-  def __init__(self, heading, CSVcolumn, affinityField, fieldListIndex):
-    self.heading = ""
-    self.CSVcolumn = -1
-    self.affinityField = -1
-    fieldListIndex = -1
+specialHeadings = {
+  'List Entry Id': Fields.ListEntryId,
+  'Organization Id': Fields.OrganizationId,
+  'Name': Fields.Name,
+  'Organization URL': Fields.OrganizationURL,
+  'Date Added': Fields.DateAdded,
+  'Date Decided': Fields.DateDecided }
 
-FieldMap = {}
+secondaryHeadings = {
+  'Owners (Primary Email)': 'Owners',
+  'Source Name (Primary Email)': 'Source Name',
+  'Sourced By (Primary Email)': 'Sourced By' }
+
+class FieldInfo:
+  def __init__(self, heading, CSVcolumn, affinityField, fieldListIndex, secondaryIndex):
+    self.heading = heading
+    self.CSVcolumn = CSVcolumn
+    self.affinityField = affinityField
+    self.fieldListIndex = fieldListIndex
+    self.secondaryIndex = secondaryIndex
+
+  def print(self):
+    print("Heading", self.heading)
+    print("CSVcolumn", self.CSVcolumn)
+    print("affinityField", self.affinityField)
+    print("fieldListIndex", self.fieldListIndex)
+    print("secondaryIndex", self.secondaryIndex)
+    print()
+
+globalFieldMap = {}
 
 
 # My Excel is German.
@@ -176,7 +200,6 @@ def readFieldMap(fname):
 
 def readCSVFile(fname):
   """Read and parse the CSV file."""
-  print("Trying to read", fname)
   lines = readLines(fname)
 
   # Read the header line.
@@ -195,25 +218,37 @@ def readCSVFile(fname):
   return headers, fields
 
 
-def findField(heading, fieldMap, orgFieldMap):
-  """Finds field index and ID if it exists."""
+def findFieldInMainMaps(heading, fieldMap, orgFieldMap):
   for i in range(len(fieldMap)):
     if fieldMap[i]['name'] == heading:
       return i, fieldMap[i]['id']
-    else:
-      print("Tried", fieldMap[i]['name'])
 
   for i in range(len(orgFieldMap)):
     if orgFieldMap[i]['name'] == heading:
       return i, orgFieldMap[i]['id']
-    else:
-      print("Tried", orgFieldMap[i]['name'])
+  
+  return -1, -1
+
+
+def findField(heading, fieldMap, orgFieldMap):
+  """Finds field index and ID if it exists."""
+
+  if heading in secondaryHeadings:
+    # Mail addresses that are part of a primary field.
+    heading2 = secondaryHeadings[heading]
+    a, c = findFieldInMainMaps(heading2, fieldMap, orgFieldMap)
+    b = -1
+  else:
+    a, b = findFieldInMainMaps(heading, fieldMap, orgFieldMap)
+    c = -1
+
+  # Found a match.
+  if (a, b, c) != (-1, -1, -1):
+    return a, b, c
 
   # Special fields.
-  if heading == 'List Entry Id':
-    return -1, -1
-  if heading == 'Organization Id':
-    return -1, -1
+  if heading in specialHeadings:
+    return -1, -1, -1
 
   print("Field", heading, "not found")
   sys.exit()
@@ -221,7 +256,6 @@ def findField(heading, fieldMap, orgFieldMap):
 
 def setHeaderMaps(CSVHeadings, fieldMap, orgFieldMap):
   """Set up header tables."""
-  FieldMap = np.empty(len(Fields))
 
   for i in range(len(CSVHeadings)):
     h = CSVHeadings[i]
@@ -230,17 +264,8 @@ def setHeaderMaps(CSVHeadings, fieldMap, orgFieldMap):
       print("CSV header", h, "does not exist")
       sys.exit()
 
-    index, id = findField(h, fieldMap, orgFieldMap)
-    print("For", h, "got", index, id)
-    print("Trying to store at", headingToEnum[h])
-    FieldMap[headingToEnum[h]] = FieldInfo(h, i, index, id)
-
-
-def printField(field):
-  for i in range(len(headings)):
-    print("{0:20s}: {1}".format(headings[i], field[i]))
-  print("")
-
+    index, id1, id2 = findField(h, fieldMap, orgFieldMap)
+    globalFieldMap[headingToEnum[h]] = FieldInfo(h, i, index, id1, id2)
 
 
 # Get command-line arguments.
@@ -261,8 +286,6 @@ orgFieldMap = readFieldMap(orgFieldsFile)
 
 # Read the CSV file.
 CSVHeadings, CSVFields = readCSVFile(CSVFile)
-
-print(headingToEnum)
 
 # Set up field correspondences.
 setHeaderMaps(CSVHeadings, fieldMap, orgFieldMap)
