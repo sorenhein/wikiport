@@ -1,0 +1,26 @@
+[
+  {
+    "id": 56092,
+    "type": 1,
+    "name": "Exit List",
+    "public": true,
+    "owner_id": 37647600,
+    "list_size": 16
+  },
+  {
+    "id": 56091,
+    "type": 1,
+    "name": "Portfolio List",
+    "public": true,
+    "owner_id": 37647600,
+    "list_size": 26
+  },
+  {
+    "id": 56429,
+    "type": 1,
+    "name": "Deal Flow List",
+    "public": true,
+    "owner_id": 37647610,
+    "list_size": 4886
+  }
+]

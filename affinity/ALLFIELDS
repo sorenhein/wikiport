@@ -1,0 +1,909 @@
+[
+  {
+    "id": 400389,
+    "name": "Job Titles",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400390,
+    "name": "Industry",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400392,
+    "name": "Location",
+    "list_id": null,
+    "value_type": 5,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400393,
+    "name": "Source of Introduction",
+    "list_id": null,
+    "value_type": 0,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400391,
+    "name": "Phone Number",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400394,
+    "name": "LinkedIn URL",
+    "list_id": null,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 485200,
+    "name": "Associated Organization",
+    "list_id": null,
+    "value_type": 1,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 400379,
+    "name": "Investment Stage",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400382,
+    "name": "Description",
+    "list_id": null,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400384,
+    "name": "Year Founded",
+    "list_id": null,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400383,
+    "name": "Number of Employees",
+    "list_id": null,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400386,
+    "name": "Location",
+    "list_id": null,
+    "value_type": 5,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400380,
+    "name": "Industry",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400387,
+    "name": "Last Funding Date",
+    "list_id": null,
+    "value_type": 4,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400381,
+    "name": "Investors",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400388,
+    "name": "Source of Introduction",
+    "list_id": null,
+    "value_type": 0,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 400385,
+    "name": "Total Funding Amount (USD)",
+    "list_id": null,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 414151,
+    "name": "Last Funding Amount (USD)",
+    "list_id": null,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 504135,
+    "name": "Status",
+    "list_id": 56429,
+    "value_type": 7,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": [
+      {
+        "id": 1890157,
+        "text": "New",
+        "rank": 1,
+        "color": 6
+      },
+      {
+        "id": 1890158,
+        "text": "Assigned",
+        "rank": 2,
+        "color": 3
+      },
+      {
+        "id": 1890159,
+        "text": "Internal DD",
+        "rank": 3,
+        "color": 3
+      },
+      {
+        "id": 1890160,
+        "text": "External DD",
+        "rank": 4,
+        "color": 3
+      },
+      {
+        "id": 1890161,
+        "text": "Documentation",
+        "rank": 5,
+        "color": 3
+      },
+      {
+        "id": 1890162,
+        "text": "Closed",
+        "rank": 6,
+        "color": 2
+      },
+      {
+        "id": 1890163,
+        "text": "Exited",
+        "rank": 7,
+        "color": 0
+      },
+      {
+        "id": 1890164,
+        "text": "Declined",
+        "rank": 8,
+        "color": 1
+      },
+      {
+        "id": 1890165,
+        "text": "Lost",
+        "rank": 9,
+        "color": 1
+      },
+      {
+        "id": 1890166,
+        "text": "Withdrawn",
+        "rank": 10,
+        "color": 1
+      },
+      {
+        "id": 1890167,
+        "text": "On Hold",
+        "rank": 11,
+        "color": 5
+      },
+      {
+        "id": 1891134,
+        "text": "Unclear",
+        "rank": 12,
+        "color": 5
+      }
+    ]
+  },
+  {
+    "id": 504136,
+    "name": "Amount",
+    "list_id": 56429,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 504137,
+    "name": "Owners",
+    "list_id": 56429,
+    "value_type": 0,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 504481,
+    "name": "Currency",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1891195,
+        "text": "CHF",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891196,
+        "text": "DKR",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891192,
+        "text": "EUR",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891194,
+        "text": "GBP",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891193,
+        "text": "USD",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 504483,
+    "name": "Funding Round",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1913261,
+        "text": "Growth",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891201,
+        "text": "Pre-Seed",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913260,
+        "text": "Project",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891202,
+        "text": "Seed",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891203,
+        "text": "Series A",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891204,
+        "text": "Series B",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891205,
+        "text": "Series C",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891206,
+        "text": "Series D",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1891207,
+        "text": "Series E",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 504484,
+    "name": "Pre-Money",
+    "list_id": 56429,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 504491,
+    "name": "Contact Person (Legacy)",
+    "list_id": 56429,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 504492,
+    "name": "Contact E-Mail (Legacy)",
+    "list_id": 56429,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 504493,
+    "name": "Description (Legacy)",
+    "list_id": 56429,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 504494,
+    "name": "Comment (Legacy)",
+    "list_id": 56429,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 504495,
+    "name": "Comment 2 (Legacy)",
+    "list_id": 56429,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 499319,
+    "name": "Wiki URL",
+    "list_id": null,
+    "value_type": 6,
+    "allows_multiple": false,
+    "track_changes": false,
+    "dropdown_options": []
+  },
+  {
+    "id": 505218,
+    "name": "Reason to decline/ lost",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1893559,
+        "text": "Business Model",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893564,
+        "text": "Cash need",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893590,
+        "text": "Competitor faster/ better timing",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893589,
+        "text": "Competitor terms more favorable",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893576,
+        "text": "Geography",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893560,
+        "text": "Management",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893561,
+        "text": "Market",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893566,
+        "text": "MIG funds",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893567,
+        "text": "Other terms",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893565,
+        "text": "Personal",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913544,
+        "text": "Portfolio conflict",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893557,
+        "text": "Risk profile",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893563,
+        "text": "Syndicate",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893558,
+        "text": "Technology",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893556,
+        "text": "USP",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1893562,
+        "text": "Valuation",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 500889,
+    "name": "Status",
+    "list_id": 56091,
+    "value_type": 7,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": [
+      {
+        "id": 2037691,
+        "text": "Closed",
+        "rank": 1,
+        "color": 2
+      }
+    ]
+  },
+  {
+    "id": 500890,
+    "name": "Owners",
+    "list_id": 56091,
+    "value_type": 0,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500891,
+    "name": "Investment Size",
+    "list_id": 56091,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500892,
+    "name": "Close Date",
+    "list_id": 56091,
+    "value_type": 4,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500893,
+    "name": "Status",
+    "list_id": 56092,
+    "value_type": 7,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500894,
+    "name": "Owners",
+    "list_id": 56092,
+    "value_type": 0,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500895,
+    "name": "Investment Size",
+    "list_id": 56092,
+    "value_type": 3,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 500896,
+    "name": "Close Date",
+    "list_id": 56092,
+    "value_type": 4,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 507386,
+    "name": "MIG Sector",
+    "list_id": null,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1913239,
+        "text": "AI & Algorithms",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903926,
+        "text": "Automation & IOT",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903927,
+        "text": "Biotech & Life Sciences",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913242,
+        "text": "Consumer Software",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913240,
+        "text": "Digital Health",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913241,
+        "text": "Enterprise Software",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903929,
+        "text": "Materials & Components",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903930,
+        "text": "Medtech",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903932,
+        "text": "Other",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913243,
+        "text": "Products & Systems",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913244,
+        "text": "Quantum Technology",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1903931,
+        "text": "Resource Efficiency",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 512671,
+    "name": "Source Name",
+    "list_id": 56429,
+    "value_type": 0,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 512674,
+    "name": "Quality",
+    "list_id": 56429,
+    "value_type": 7,
+    "allows_multiple": false,
+    "track_changes": true,
+    "dropdown_options": [
+      {
+        "id": 1913256,
+        "text": "3 - Sweet spot",
+        "rank": 1,
+        "color": 3
+      },
+      {
+        "id": 1913257,
+        "text": "2 - Interesting",
+        "rank": 2,
+        "color": 5
+      },
+      {
+        "id": 1913258,
+        "text": "1 - Marginal",
+        "rank": 3,
+        "color": 6
+      },
+      {
+        "id": 1913259,
+        "text": "0 - Uninteresting",
+        "rank": 4,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 512669,
+    "name": "Source Type",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1913245,
+        "text": "Adviser",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913246,
+        "text": "Angel",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913247,
+        "text": "Broker",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913248,
+        "text": "Company itself",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913249,
+        "text": "Conference",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913250,
+        "text": "Family Office",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913251,
+        "text": "Friend",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913252,
+        "text": "Lawyer",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913253,
+        "text": "Top-down",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913255,
+        "text": "VC considering",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913254,
+        "text": "VC in Company",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913270,
+        "text": "VC other",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913269,
+        "text": "VC who passed",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 512670,
+    "name": "Source Organization",
+    "list_id": 56429,
+    "value_type": 1,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 512672,
+    "name": "Source Method",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1913268,
+        "text": "Active MIG approach",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913266,
+        "text": "MIG info/bplan",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913267,
+        "text": "Received directly",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  },
+  {
+    "id": 512673,
+    "name": "Sourced By",
+    "list_id": 56429,
+    "value_type": 0,
+    "allows_multiple": true,
+    "track_changes": true,
+    "dropdown_options": []
+  },
+  {
+    "id": 512675,
+    "name": "Transaction",
+    "list_id": 56429,
+    "value_type": 2,
+    "allows_multiple": true,
+    "track_changes": false,
+    "dropdown_options": [
+      {
+        "id": 1913265,
+        "text": "Buyout",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913262,
+        "text": "Primary",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913263,
+        "text": "Secondary",
+        "rank": 0,
+        "color": 0
+      },
+      {
+        "id": 1913264,
+        "text": "Spinout",
+        "rank": 0,
+        "color": 0
+      }
+    ]
+  }
+]

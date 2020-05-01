@@ -49,3 +49,6 @@
 *.opendb
 *.sqlite
 *.json
+*.css
+*.download
+*.png

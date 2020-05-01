@@ -13,11 +13,6 @@ On deals side:
 - Count number of top-level entries in each directory
 - Count total number of file entries in each directory
 
-On JK side:
-- Count number of file entries in each directory
-
-Subtract all the good ones from JK list.
-
 Play around with getting the HTML and preserving links (rebasing them).
 
 In the end, check that "all deal pages" are referenced in Affinity.
@@ -26,40 +21,19 @@ The deadlinks.txt file actually has files that exist(?) but can't
 be downloaded, as well as links that point nowhere. Should separate
 these.
 
-Make a backup of categories and maybe the entire deals directory.
-
-
 Move portfolio out of deal list into portfolio.txt
 
 Are the many pages that are not linked strictly hierarchically?
 
 Do use the permission knowledge (PipelineGroup as well?)
 
-oddlines.txt (no ___) and badlinks.txt (ditto) should be read in
-nested.pl and ignored when they show up.  Maybe they should have 
-the ___ back.  Maybe they should be concatenated in deadlinks.txt.
-
 Add a MIG mail user.  Use this as the source.
-
-Careful about Wiki files that only differ in their case.
-Make a list and check it manually.  Probably one of them is bad?
 
 Each deal directory should have .txt file (Prüfung_01_2010).
 Or should the unused Prüfung* files be in Jürgen's part or in some
 other tree than deals/found?
 
-Check which ones of koschcand.txt are real deals.  Perhaps use their
-groups as well.
-
-Among JK deal candidates, 5 weren't read as they differ only by case
-from existing ones (and Cygwin, unlike Wiki, doesn't differentiate).
-- Diacdem (DiaCdem exists)
-- Leadmacher (LEADMACHER exists)
-- Nanotemper (NanoTemper exists)
-- Tigo (TIGO exists)
-- ZeCardioTx (ZeCardioTX exists)
-
-There might be deals such as SunCoal hiding in a Prüfing sheet.
+There might be deals such as SunCoal hiding in a Prüfung sheet.
 
 2020-04-19, 13:10
 -----------------
@@ -93,8 +67,3 @@ Hierarchical pages within known deals:
 * Add the dead ones to deadlinks.txt, used by parse.pl          <------
 * Move into deals/ (gingerly).
 * Repeat a couple of times until no more new, nested downloads.
-
-
-oddlinks and badlinks are links referenced on Wiki pages in the 
-Affinity list.  The odd ones are in the Wiki list but can't be read.
-The bad ones are not in the Wiki list at all.

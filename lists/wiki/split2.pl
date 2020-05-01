@@ -80,7 +80,7 @@ for my $g (sort keys %pages)
   my $dir = dirname($fout);
   make_path($dir);
 
-  open my $fo, ">", $fout or die "Cannot open $fout: $!";
+  open my $fo, ">>", $fout or die "Cannot open $fout: $!";
   for my $p (@{$pages{$g}})
   {
     print $fo $p, "\n";

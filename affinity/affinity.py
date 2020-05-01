@@ -67,16 +67,28 @@ tokenlines = readTargets(keyfile)
 token = tokenlines[0]
 
 fields = parseCSV(readTargets(sys.argv[1]))
-
 # Get all fields
+# Works
 # URL = 'https://api.affinity.co/organizations/fields'
-# URL = 'https://api.affinity.co/lists/56429/list_entries/15659640'
-# URL = 'https://api.affinity.co/lists'
-# response = getURL(URL)
 
-# js = response.json()
-# print(json.dumps(js, indent = 2))
-# sys.exit()
+# Works
+# URL = 'https://api.affinity.co/lists/56429'
+
+# Dumps the whole deal flow list.
+# URL = 'https://api.affinity.co/lists/56429/list-entries'
+
+# Dumps a single entry from the deal list.
+# URL = 'https://api.affinity.co/lists/56429/list-entries/15659640'
+
+URL = 'https://api.affinity.co/field-values?list_entry_id=15659640'
+
+
+# URL = 'https://api.affinity.co/lists'
+response = getURL(URL)
+
+js = response.json()
+print(json.dumps(js, indent = 2))
+sys.exit()
 
 
 for field in fields:
