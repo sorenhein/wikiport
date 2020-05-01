@@ -12,22 +12,23 @@ from requests.auth import HTTPBasicAuth
 import numpy as np
 
 
-affinityBase = 'https://api.affinity.co/'
-affinityHeaders = {'Content-Type': 'application/json'}
+AFFINITY_BASE = 'https://api.affinity.co/'
+AFFINITY_HEADERS = {'Content-Type': 'application/json'}
 
 # File where personal Affinity API key is stored.
-keyFile = 'key.txt'
+KEY_FILE = 'key.txt'
 
 # File with output of /lists.
-listsFile = 'lists.txt'
+LISTS_FILE = 'lists.txt'
 
 # File with output of /fields.
-fieldsFile = 'fields.txt'
+FIELDS_FILE = 'fields.txt'
 
 # File with output of /organizations/fields.
-orgFieldsFile = 'orgfields.txt'
+ORG_FIELDS_FILE = 'orgfields.txt'
 
 class Fields(Enum):
+  """All the fields expected in the CSV file."""
   ListEntryId = 0
   OrganizationId = 1
   Name = 2
@@ -54,7 +55,7 @@ class Fields(Enum):
   SourcedByMail = 23
   Reason = 24
 
-headingToEnum = {
+HEADING_TO_ENUM = {
   'List Entry Id': Fields.ListEntryId,
   'Organization Id': Fields.OrganizationId,
   'Name': Fields.Name,
@@ -79,167 +80,171 @@ headingToEnum = {
   'Source Method': Fields.SourceMethod,
   'Sourced By': Fields.SourcedBy,
   'Sourced By (Primary Email)': Fields.SourcedByMail,
-  'Reason to decline/ lost': Fields.Reason }
+  'Reason to decline/ lost': Fields.Reason}
 
-specialHeadings = {
+SPECIAL_HEADINGS = {
   'List Entry Id': Fields.ListEntryId,
   'Organization Id': Fields.OrganizationId,
   'Name': Fields.Name,
   'Organization URL': Fields.OrganizationURL,
   'Date Added': Fields.DateAdded,
-  'Date Decided': Fields.DateDecided }
+  'Date Decided': Fields.DateDecided}
 
-secondaryHeadings = {
+SECONDARY_HEADINGS = {
   'Owners (Primary Email)': 'Owners',
   'Source Name (Primary Email)': 'Source Name',
-  'Sourced By (Primary Email)': 'Sourced By' }
+  'Sourced By (Primary Email)': 'Sourced By'}
 
 class FieldInfo:
-  def __init__(self, heading, CSVcolumn, affinityField, fieldListIndex, secondaryIndex):
+  """Keeps track of knowledge about a field."""
+  def __init__(self, heading, CSVcolumn, affinity_field,
+    field_list_index, secondary_index):
     self.heading = heading
     self.CSVcolumn = CSVcolumn
-    self.affinityField = affinityField
-    self.fieldListIndex = fieldListIndex
-    self.secondaryIndex = secondaryIndex
+    self.affinity_field = affinity_field
+    self.field_list_index = field_list_index
+    self.secondary_index = secondary_index
 
-  def print(self):
+  def show(self):
+    """Simple dump."""
     print("Heading", self.heading)
     print("CSVcolumn", self.CSVcolumn)
-    print("affinityField", self.affinityField)
-    print("fieldListIndex", self.fieldListIndex)
-    print("secondaryIndex", self.secondaryIndex)
+    print("affinityField", self.affinity_field)
+    print("fieldListIndex", self.field_list_index)
+    print("secondaryIndex", self.secondary_index)
     print()
 
-globalFieldMap = {}
+GlobalFieldMap = {}
 
 
 # My Excel is German.
-separator = ';'
-enumerator = ','
+SEPARATOR = ';'
+ENUMERATOR = ','
 
 
-def getArgs():
+def get_args():
   """Reads the CSV file name and an optional refresh flag."""
-  usageFlag = 0
-  refreshFlag = 0
+  usage_flag = 0
+  refresh_flag = 0
   l = len(sys.argv)
 
   if l == 2 or l == 3:
     f = sys.argv[1]
   else:
-    usageFlag = 1
-    
-  if usageFlag == 0 and l == 3:
+    usage_flag = 1
+
+  if usage_flag == 0 and l == 3:
     if sys.argv[2] == 'refresh':
-      refreshFlag = 1
+      refresh_flag = 1
     else:
       print("Optional flag must be 'refresh' if present.")
-      usageFlag = 1
+      usage_flag = 1
 
-  if usageFlag:
+  if usage_flag:
     print("Usage: python3 affinity.py file.csv [refresh]")
     sys.exit()
 
-  return f, refreshFlag
+  return f, refresh_flag
 
 
-def readLines(fname):
+def read_lines(fname):
   """Read in the lines of target pages."""
   lines = [line.rstrip() for line in open(fname, 'r')]
   return lines
 
 
-def getURL(URL):
-  response = requests.get(URL, 
-    auth = HTTPBasicAuth('', token), 
-    headers = affinityHeaders)
+def get_url(URL):
+  """Reads from the Affinity API."""
+  response = requests.get(URL,
+    auth=HTTPBasicAuth('', token),
+    headers=AFFINITY_HEADERS)
 
-  if (response.status_code != 200):
+  if response.status_code != 200:
     print(response.status_code)
     sys.exit()
-  
+
   return response
 
 
-def makeCachedFile(URL, fname):
+def make_cached_file(url, fname):
   """Make a cached file from the URL."""
-  response = getURL(URL)
-  js = response.json()
-  lf = open(fname, "w")
-  lf.write(json.dumps(js, indent = 2))
-  lf.close()
+  response = get_url(url)
+  jsr = response.json()
+  lfile = open(fname, "w")
+  lfile.write(json.dumps(jsr, indent=2))
+  lfile.close()
 
 
-def makeCachedFiles():
+def make_cached_files():
   """Make the cached files (lists and fields)."""
-  makeCachedFile(affinityBase + 'lists', listsFile)
-  makeCachedFile(affinityBase + 'fields', fieldsFile)
-  makeCachedFile(affinityBase + 'organizations/fields', orgFieldsFile)
+  make_cached_file(AFFINITY_BASE + 'lists', LISTS_FILE)
+  make_cached_file(AFFINITY_BASE + 'fields', FIELDS_FILE)
+  make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
 
 
-def readDealListId(fname):
+def read_deal_list_id(fname):
   """Read and parse the Deal Flow List number from the file."""
-  with open(listsFile, 'r') as f:
+  with open(fname, 'r') as f:
     listsDict = json.load(f)
 
   for e in listsDict:
     if e['name'] == 'Deal Flow List':
       return e['id']
-  
+
   print("Deal Flow List not found")
   sys.exit()
 
 
-def readFieldMap(fname):
+def read_field_map(fname):
   """Read and parse the fields file."""
   with open(fname, 'r') as f:
-    fieldsDict = json.load(f)
+    fields_dict = json.load(f)
 
-  return fieldsDict
+  return fields_dict
 
 
-def readCSVFile(fname):
+def read_csv_file(fname):
   """Read and parse the CSV file."""
-  lines = readLines(fname)
+  lines = read_lines(fname)
 
   # Read the header line.
-  n = lines[0].count(separator)
-  headers = np.empty(n+1, dtype = object)
-  headers = lines[0].split(separator)
+  n = lines[0].count(SEPARATOR)
+  headers = np.empty(n+1, dtype=object)
+  headers = lines[0].split(SEPARATOR)
 
-  fields = np.empty((len(lines)-1, n+1), dtype = object)
+  fields = np.empty((len(lines)-1, n+1), dtype=object)
   for i in range(1, len(lines)):
-    s = lines[i].count(separator)
+    s = lines[i].count(SEPARATOR)
     if s != n:
       print("Line", i, ":", lines[i], ", count", s)
       sys.exit()
-    fields[i-1] = lines[i].split(separator)
+    fields[i-1] = lines[i].split(SEPARATOR)
 
   return headers, fields
 
 
-def findFieldInMainMaps(heading, fieldMap, orgFieldMap):
-  for i in range(len(fieldMap)):
-    if fieldMap[i]['name'] == heading:
-      return i, fieldMap[i]['id']
+def find_field_in_main_maps(heading, field_map, org_field_map):
+  for i in range(len(field_map)):
+    if field_map[i]['name'] == heading:
+      return i, field_map[i]['id']
 
-  for i in range(len(orgFieldMap)):
-    if orgFieldMap[i]['name'] == heading:
-      return i, orgFieldMap[i]['id']
-  
+  for i in range(len(org_field_map)):
+    if org_field_map[i]['name'] == heading:
+      return i, org_field_map[i]['id']
+
   return -1, -1
 
 
-def findField(heading, fieldMap, orgFieldMap):
+def find_field(heading, field_map, org_field_map):
   """Finds field index and ID if it exists."""
 
-  if heading in secondaryHeadings:
+  if heading in SECONDARY_HEADINGS:
     # Mail addresses that are part of a primary field.
-    heading2 = secondaryHeadings[heading]
-    a, c = findFieldInMainMaps(heading2, fieldMap, orgFieldMap)
+    heading2 = SECONDARY_HEADINGS[heading]
+    a, c = find_field_in_main_maps(heading2, field_map, org_field_map)
     b = -1
   else:
-    a, b = findFieldInMainMaps(heading, fieldMap, orgFieldMap)
+    a, b = find_field_in_main_maps(heading, field_map, org_field_map)
     c = -1
 
   # Found a match.
@@ -247,48 +252,96 @@ def findField(heading, fieldMap, orgFieldMap):
     return a, b, c
 
   # Special fields.
-  if heading in specialHeadings:
+  if heading in SPECIAL_HEADINGS:
     return -1, -1, -1
 
   print("Field", heading, "not found")
   sys.exit()
 
 
-def setHeaderMaps(CSVHeadings, fieldMap, orgFieldMap):
+def set_header_maps(CSVHeadings, field_map, org_field_map):
   """Set up header tables."""
 
   for i in range(len(CSVHeadings)):
     h = CSVHeadings[i]
 
-    if not h in headingToEnum:
+    if not h in HEADING_TO_ENUM:
       print("CSV header", h, "does not exist")
       sys.exit()
 
-    index, id1, id2 = findField(h, fieldMap, orgFieldMap)
-    globalFieldMap[headingToEnum[h]] = FieldInfo(h, i, index, id1, id2)
+    index, id1, id2 = find_field(h, field_map, org_field_map)
+    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, index, id1, id2)
+
+
+def turn_line_into_map(line, column_to_enum):
+  """Turn a 0-indexed line into a dictionary."""
+  line_map = {}
+  for i in range(len(column_to_enum)):
+    line_map[column_to_enum[i]] = line[i]
+
+  return line_map
+
+
+def turn_csv_into_map(csv_fields):
+  """csv_fields are counted from 0.  Turn into a dictionary."""
+  column_to_enum = [0 for i in range(len(GlobalFieldMap))]
+  for e in GlobalFieldMap:
+    g = GlobalFieldMap[e]
+    column_to_enum[g.CSVcolumn] = HEADING_TO_ENUM[g.heading]
+
+  fields = []
+  for line in csv_fields:
+    fields.append(turn_line_into_map(line, column_to_enum))
+
+  return fields
 
 
 # Get command-line arguments.
-CSVFile, refreshFlag = getArgs()
+CSVFile, refresh_flag = get_args()
 
 # Read the personal Affinity token.
-token = readLines(keyFile)[0]
+token = read_lines(KEY_FILE)[0]
 
 # Set up the cached files if needed.
-if refreshFlag == 1:
+if refresh_flag == 1:
   print("Remaking cache")
-  makeCachedFiles()
+  make_cached_files()
 
 # Read the cached files.
-dealListId = readDealListId(listsFile)
-fieldMap = readFieldMap(fieldsFile)
-orgFieldMap = readFieldMap(orgFieldsFile)
+dealListId = read_deal_list_id(LISTS_FILE)
+field_map = read_field_map(FIELDS_FILE)
+org_field_map = read_field_map(ORG_FIELDS_FILE)
 
 # Read the CSV file.
-CSVHeadings, CSVFields = readCSVFile(CSVFile)
+CSVHeadings, csv_fields = read_csv_file(CSVFile)
 
 # Set up field correspondences.
-setHeaderMaps(CSVHeadings, fieldMap, orgFieldMap)
+set_header_maps(CSVHeadings, field_map, org_field_map)
+
+# Store the CSV lines more semantically.
+CSVMaps = turn_csv_into_map(csv_fields)
+
+# Loop over CSV lines.
+for entry in CSVMaps:
+  response = get_url(AFFINITY_BASE + 'organizations/' +
+    entry[Fields.OrganizationId])
+
+  # print("Organization")
+  # js = response.json()
+  # print(json.dumps(js, indent = 2))
+
+  response = get_url(AFFINITY_BASE + 'lists/' +
+    str(dealListId) + '/list-entries/' + entry[Fields.ListEntryId])
+  # print("Deal List entry")
+  # js = response.json()
+  # print(json.dumps(js, indent = 2))
+
+  response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
+    entry[Fields.ListEntryId])
+  print("Fields")
+  js = response.json()
+  print(json.dumps(js, indent=2))
+
 
 sys.exit()
 
@@ -311,19 +364,19 @@ URL = 'https://api.affinity.co/field-values?list_entry_id=15659640'
 
 
 # URL = 'https://api.affinity.co/lists'
-response = getURL(URL)
+response = get_url(URL)
 
 js = response.json()
-print(json.dumps(js, indent = 2))
+print(json.dumps(js, indent=2))
 sys.exit()
 
 
 for field in fields:
-  URL = affinityBase + field[0]
+  URL = AFFINITY_BASE + field[0]
   print("Getting ", URL)
 
-  response = getURL(URL)
+  response = get_url(URL)
 
   js = response.json()
-  print(json.dumps(js, indent = 2))
+  print(json.dumps(js, indent=2))
 
