@@ -1,8 +1,5 @@
 #!python3
-
-# Interfaces with Affinity API.
-#
-# python3 affinity.py file.csv [refresh]
+"""Interfaces with Affinity API: python3 affinity.py file.csv [refresh]"""
 
 import sys
 from enum import Enum
@@ -97,10 +94,10 @@ SECONDARY_HEADINGS = {
 
 class FieldInfo:
   """Keeps track of knowledge about a field."""
-  def __init__(self, heading, CSVcolumn, affinity_field,
-    field_list_index, secondary_index):
+  def __init__(self, heading, csv_column, affinity_field,
+               field_list_index, secondary_index):
     self.heading = heading
-    self.CSVcolumn = CSVcolumn
+    self.csv_column = csv_column
     self.affinity_field = affinity_field
     self.field_list_index = field_list_index
     self.secondary_index = secondary_index
@@ -108,7 +105,7 @@ class FieldInfo:
   def show(self):
     """Simple dump."""
     print("Heading", self.heading)
-    print("CSVcolumn", self.CSVcolumn)
+    print("csv_column", self.csv_column)
     print("affinityField", self.affinity_field)
     print("fieldListIndex", self.field_list_index)
     print("secondaryIndex", self.secondary_index)
@@ -125,17 +122,17 @@ ENUMERATOR = ','
 def get_args():
   """Reads the CSV file name and an optional refresh flag."""
   usage_flag = 0
-  refresh_flag = 0
+  local_refresh_flag = 0
   l = len(sys.argv)
 
-  if l == 2 or l == 3:
+  if l in (2, 3):
     f = sys.argv[1]
   else:
     usage_flag = 1
 
   if usage_flag == 0 and l == 3:
     if sys.argv[2] == 'refresh':
-      refresh_flag = 1
+      local_refresh_flag = 1
     else:
       print("Optional flag must be 'refresh' if present.")
       usage_flag = 1
@@ -144,7 +141,7 @@ def get_args():
     print("Usage: python3 affinity.py file.csv [refresh]")
     sys.exit()
 
-  return f, refresh_flag
+  return f, local_refresh_flag
 
 
 def read_lines(fname):
@@ -153,14 +150,14 @@ def read_lines(fname):
   return lines
 
 
-def get_url(URL):
+def get_url(url):
   """Reads from the Affinity API."""
-  response = requests.get(URL,
-    auth=HTTPBasicAuth('', token),
-    headers=AFFINITY_HEADERS)
+  local_resp = requests.get(url,
+                            auth=HTTPBasicAuth('', token),
+                            headers=AFFINITY_HEADERS)
 
-  if response.status_code != 200:
-    print(response.status_code)
+  if local_resp.status_code != 200:
+    print(local_resp.status_code)
     sys.exit()
 
   return response
@@ -168,8 +165,8 @@ def get_url(URL):
 
 def make_cached_file(url, fname):
   """Make a cached file from the URL."""
-  response = get_url(url)
-  jsr = response.json()
+  local_resp = get_url(url)
+  jsr = local_resp.json()
   lfile = open(fname, "w")
   lfile.write(json.dumps(jsr, indent=2))
   lfile.close()
@@ -185,9 +182,9 @@ def make_cached_files():
 def read_deal_list_id(fname):
   """Read and parse the Deal Flow List number from the file."""
   with open(fname, 'r') as f:
-    listsDict = json.load(f)
+    lists_dict = json.load(f)
 
-  for e in listsDict:
+  for e in lists_dict:
     if e['name'] == 'Deal Flow List':
       return e['id']
 
@@ -212,39 +209,40 @@ def read_csv_file(fname):
   headers = np.empty(n+1, dtype=object)
   headers = lines[0].split(SEPARATOR)
 
-  fields = np.empty((len(lines)-1, n+1), dtype=object)
+  local_fields = np.empty((len(lines)-1, n+1), dtype=object)
   for i in range(1, len(lines)):
     s = lines[i].count(SEPARATOR)
     if s != n:
       print("Line", i, ":", lines[i], ", count", s)
       sys.exit()
-    fields[i-1] = lines[i].split(SEPARATOR)
+    local_fields[i-1] = lines[i].split(SEPARATOR)
 
-  return headers, fields
+  return headers, local_fields
 
 
-def find_field_in_main_maps(heading, field_map, org_field_map):
+def find_field_in_main_maps(heading, local_field_map, local_org_map):
+  """Try to find the field."""
   for i in range(len(field_map)):
-    if field_map[i]['name'] == heading:
-      return i, field_map[i]['id']
+    if local_field_map[i]['name'] == heading:
+      return i, local_field_map[i]['id']
 
-  for i in range(len(org_field_map)):
-    if org_field_map[i]['name'] == heading:
-      return i, org_field_map[i]['id']
+  for i in range(len(local_org_map)):
+    if local_org_map[i]['name'] == heading:
+      return i, local_org_map[i]['id']
 
   return -1, -1
 
 
-def find_field(heading, field_map, org_field_map):
+def find_field(heading, local_field_map, local_org_map):
   """Finds field index and ID if it exists."""
 
   if heading in SECONDARY_HEADINGS:
     # Mail addresses that are part of a primary field.
     heading2 = SECONDARY_HEADINGS[heading]
-    a, c = find_field_in_main_maps(heading2, field_map, org_field_map)
+    a, c = find_field_in_main_maps(heading2, local_field_map, local_org_map)
     b = -1
   else:
-    a, b = find_field_in_main_maps(heading, field_map, org_field_map)
+    a, b = find_field_in_main_maps(heading, local_field_map, local_org_map)
     c = -1
 
   # Found a match.
@@ -259,17 +257,17 @@ def find_field(heading, field_map, org_field_map):
   sys.exit()
 
 
-def set_header_maps(CSVHeadings, field_map, org_field_map):
+def set_header_maps(csv_headings, local_field_map, local_org_map):
   """Set up header tables."""
 
-  for i in range(len(CSVHeadings)):
-    h = CSVHeadings[i]
+  for i in range(len(csv_headings)):
+    h = csv_headings[i]
 
     if not h in HEADING_TO_ENUM:
       print("CSV header", h, "does not exist")
       sys.exit()
 
-    index, id1, id2 = find_field(h, field_map, org_field_map)
+    index, id1, id2 = find_field(h, local_field_map, local_org_map)
     GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, index, id1, id2)
 
 
@@ -282,15 +280,15 @@ def turn_line_into_map(line, column_to_enum):
   return line_map
 
 
-def turn_csv_into_map(csv_fields):
+def turn_csv_into_map(local_csv_fields):
   """csv_fields are counted from 0.  Turn into a dictionary."""
   column_to_enum = [0 for i in range(len(GlobalFieldMap))]
   for e in GlobalFieldMap:
     g = GlobalFieldMap[e]
-    column_to_enum[g.CSVcolumn] = HEADING_TO_ENUM[g.heading]
+    column_to_enum[g.csv_column] = HEADING_TO_ENUM[g.heading]
 
   fields = []
-  for line in csv_fields:
+  for line in local_csv_fields:
     fields.append(turn_line_into_map(line, column_to_enum))
 
   return fields
@@ -324,59 +322,25 @@ CSVMaps = turn_csv_into_map(csv_fields)
 # Loop over CSV lines.
 for entry in CSVMaps:
   response = get_url(AFFINITY_BASE + 'organizations/' +
-    entry[Fields.OrganizationId])
+                     entry[Fields.OrganizationId])
 
   # print("Organization")
   # js = response.json()
   # print(json.dumps(js, indent = 2))
 
   response = get_url(AFFINITY_BASE + 'lists/' +
-    str(dealListId) + '/list-entries/' + entry[Fields.ListEntryId])
+                     str(dealListId) + '/list-entries/' +
+                     entry[Fields.ListEntryId])
+
   # print("Deal List entry")
   # js = response.json()
   # print(json.dumps(js, indent = 2))
 
   response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
-    entry[Fields.ListEntryId])
+                     entry[Fields.ListEntryId])
   print("Fields")
   js = response.json()
   print(json.dumps(js, indent=2))
 
 
 sys.exit()
-
-
-fields = parseCSV(readTargets(sys.argv[1]))
-# Get all fields
-# Works
-# URL = 'https://api.affinity.co/organizations/fields'
-
-# Works
-# URL = 'https://api.affinity.co/lists/56429'
-
-# Dumps the whole deal flow list.
-# URL = 'https://api.affinity.co/lists/56429/list-entries'
-
-# Dumps a single entry from the deal list.
-# URL = 'https://api.affinity.co/lists/56429/list-entries/15659640'
-
-URL = 'https://api.affinity.co/field-values?list_entry_id=15659640'
-
-
-# URL = 'https://api.affinity.co/lists'
-response = get_url(URL)
-
-js = response.json()
-print(json.dumps(js, indent=2))
-sys.exit()
-
-
-for field in fields:
-  URL = AFFINITY_BASE + field[0]
-  print("Getting ", URL)
-
-  response = get_url(URL)
-
-  js = response.json()
-  print(json.dumps(js, indent=2))
-
