@@ -7,6 +7,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 import numpy as np
+import pprint
 
 
 AFFINITY_BASE = 'https://api.affinity.co/'
@@ -111,6 +112,23 @@ class FieldInfo:
     print("secondaryIndex", self.secondary_index)
     print()
 
+class FieldInfo2:
+  """Keeps track of knowledge about a field."""
+  def __init__(self, heading, csv_column,
+               field_list_index, secondary_index):
+    self.heading = heading
+    self.csv_column = csv_column
+    self.field_list_index = field_list_index
+    self.secondary_index = secondary_index
+
+  def show(self):
+    """Simple dump."""
+    print("Heading", self.heading)
+    print("csv_column", self.csv_column)
+    print("fieldListIndex", self.field_list_index)
+    print("secondaryIndex", self.secondary_index)
+    print()
+
 GlobalFieldMap = {}
 
 
@@ -160,7 +178,7 @@ def get_url(url):
     print(local_resp.status_code)
     sys.exit()
 
-  return response
+  return local_resp
 
 
 def make_cached_file(url, fname):
@@ -233,6 +251,17 @@ def find_field_in_main_maps(heading, local_field_map, local_org_map):
   return -1, -1
 
 
+def find_field_in_main_maps2(heading, local_field_map, local_org_map):
+  """Try to find the field."""
+  if heading in local_field_map:
+    return local_field_map[heading]
+
+  if heading in local_org_map:
+    return local_org_map[heading]
+
+  return -1
+
+
 def find_field(heading, local_field_map, local_org_map):
   """Finds field index and ID if it exists."""
 
@@ -257,6 +286,52 @@ def find_field(heading, local_field_map, local_org_map):
   sys.exit()
 
 
+def find_field2(heading, local_field_map, local_org_map):
+  """Finds field index and ID if it exists."""
+
+  if heading in SECONDARY_HEADINGS:
+    # Mail addresses that are part of a primary field.
+    heading2 = SECONDARY_HEADINGS[heading]
+    c = find_field_in_main_maps2(heading2, local_field_map, local_org_map)
+    b = -1
+  else:
+    b = find_field_in_main_maps2(heading, local_field_map, local_org_map)
+    c = -1
+
+  # Found a match.
+  if (b, c) != (-1, -1):
+    return b, c
+
+  # Special fields.
+  if heading in SPECIAL_HEADINGS:
+    return -1, -1
+
+  print("Field", heading, "not found")
+  sys.exit()
+
+
+def read_field_map2(fname, local_deal_list_id):
+  """Read and parse the fields file."""
+  with open(fname, 'r') as f:
+    fields_list = json.load(f)
+
+  local_field_name_to_enum = {}
+  local_field_id_to_enum = {}
+
+  for field in fields_list:
+    if not field['name'] in HEADING_TO_ENUM:
+      continue
+
+    if str(field['list_id']) != str(local_deal_list_id):
+      continue
+
+    e = HEADING_TO_ENUM[field['name']]
+    local_field_name_to_enum[field['name']] = e
+    local_field_id_to_enum[field['id']] = e
+
+  return local_field_name_to_enum, local_field_id_to_enum
+
+
 def set_header_maps(csv_headings, local_field_map, local_org_map):
   """Set up header tables."""
 
@@ -269,6 +344,20 @@ def set_header_maps(csv_headings, local_field_map, local_org_map):
 
     index, id1, id2 = find_field(h, local_field_map, local_org_map)
     GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, index, id1, id2)
+
+
+def set_header_maps2(csv_headings, local_field_map, local_org_map):
+  """Set up header tables."""
+
+  for i in range(len(csv_headings)):
+    h = csv_headings[i]
+
+    if not h in HEADING_TO_ENUM:
+      print("CSV header", h, "does not exist")
+      sys.exit()
+
+    id1, id2 = find_field2(h, local_field_map, local_org_map)
+    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo2(h, i, id1, id2)
 
 
 def turn_line_into_map(line, column_to_enum):
@@ -294,6 +383,12 @@ def turn_csv_into_map(local_csv_fields):
   return fields
 
 
+def time_to_str(aff_str):
+  """Turns an Affinity time string into dd.mm.yyyy."""
+  s = aff_str[6:9] + '-' + aff_str[3:4] + '-' + aff_str[0:1]
+  return s
+
+
 # Get command-line arguments.
 CSVFile, refresh_flag = get_args()
 
@@ -306,35 +401,62 @@ if refresh_flag == 1:
   make_cached_files()
 
 # Read the cached files.
-dealListId = read_deal_list_id(LISTS_FILE)
+deal_list_id = read_deal_list_id(LISTS_FILE)
 field_map = read_field_map(FIELDS_FILE)
+field_name_to_enum, field_id_to_enum = read_field_map2(FIELDS_FILE, deal_list_id)
 org_field_map = read_field_map(ORG_FIELDS_FILE)
+print("READING ORG FILE")
+org_field_name_to_enum, org_field_id_to_enum = read_field_map2(ORG_FIELDS_FILE, "None")
+
+print("field_name_to_enum")
+pprint.pprint(field_name_to_enum)
+print("field_id_to_enum")
+pprint.pprint(field_id_to_enum)
+# print("org_field_map")
+# pprint.pprint(org_field_map)
+print("org_field_name_to_enum")
+pprint.pprint(org_field_name_to_enum)
+print("org_field_id_to_enum")
+pprint.pprint(org_field_id_to_enum)
 
 # Read the CSV file.
-CSVHeadings, csv_fields = read_csv_file(CSVFile)
+csv_headings, csv_fields = read_csv_file(CSVFile)
 
 # Set up field correspondences.
-set_header_maps(CSVHeadings, field_map, org_field_map)
+set_header_maps2(csv_headings, field_name_to_enum, org_field_name_to_enum)
+
+print("GFM")
+print(GlobalFieldMap)
 
 # Store the CSV lines more semantically.
-CSVMaps = turn_csv_into_map(csv_fields)
+csv_maps = turn_csv_into_map(csv_fields)
 
 # Loop over CSV lines.
-for entry in CSVMaps:
-  response = get_url(AFFINITY_BASE + 'organizations/' +
-                     entry[Fields.OrganizationId])
+for entry in csv_maps:
+  # response = get_url(AFFINITY_BASE + 'organizations/' +
+                     # entry[Fields.OrganizationId])
 
   # print("Organization")
   # js = response.json()
   # print(json.dumps(js, indent = 2))
 
-  response = get_url(AFFINITY_BASE + 'lists/' +
-                     str(dealListId) + '/list-entries/' +
-                     entry[Fields.ListEntryId])
+  fetched = {}
+  fetched['List Entry Id'] = entry[Fields.ListEntryId]
+  fetched['Organization Id'] = entry[Fields.OrganizationId]
 
-  # print("Deal List entry")
-  # js = response.json()
-  # print(json.dumps(js, indent = 2))
+  response = get_url(AFFINITY_BASE + 'lists/' +
+                     str(deal_list_id) + '/list-entries/' +
+                     entry[Fields.ListEntryId])
+  js = response.json()
+
+  fetched['Name'] = js['entity']['name']
+  fetched['Organization URL'] = js['entity']['domain']
+  # TODO Also store 'global' somewhere
+
+  fetched['Date Added'] = time_to_str(js['created_at'])
+
+  print("Deal List entry")
+  print(json.dumps(js, indent = 2))
 
   response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
                      entry[Fields.ListEntryId])
