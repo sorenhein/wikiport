@@ -95,25 +95,6 @@ SECONDARY_HEADINGS = {
 
 class FieldInfo:
   """Keeps track of knowledge about a field."""
-  def __init__(self, heading, csv_column, affinity_field,
-               field_list_index, secondary_index):
-    self.heading = heading
-    self.csv_column = csv_column
-    self.affinity_field = affinity_field
-    self.field_list_index = field_list_index
-    self.secondary_index = secondary_index
-
-  def show(self):
-    """Simple dump."""
-    print("Heading", self.heading)
-    print("csv_column", self.csv_column)
-    print("affinityField", self.affinity_field)
-    print("fieldListIndex", self.field_list_index)
-    print("secondaryIndex", self.secondary_index)
-    print()
-
-class FieldInfo2:
-  """Keeps track of knowledge about a field."""
   def __init__(self, heading, csv_column,
                field_list_index, secondary_index):
     self.heading = heading
@@ -210,14 +191,6 @@ def read_deal_list_id(fname):
   sys.exit()
 
 
-def read_field_map(fname):
-  """Read and parse the fields file."""
-  with open(fname, 'r') as f:
-    fields_dict = json.load(f)
-
-  return fields_dict
-
-
 def read_csv_file(fname):
   """Read and parse the CSV file."""
   lines = read_lines(fname)
@@ -240,19 +213,6 @@ def read_csv_file(fname):
 
 def find_field_in_main_maps(heading, local_field_map, local_org_map):
   """Try to find the field."""
-  for i in range(len(field_map)):
-    if local_field_map[i]['name'] == heading:
-      return i, local_field_map[i]['id']
-
-  for i in range(len(local_org_map)):
-    if local_org_map[i]['name'] == heading:
-      return i, local_org_map[i]['id']
-
-  return -1, -1
-
-
-def find_field_in_main_maps2(heading, local_field_map, local_org_map):
-  """Try to find the field."""
   if heading in local_field_map:
     return local_field_map[heading]
 
@@ -268,34 +228,10 @@ def find_field(heading, local_field_map, local_org_map):
   if heading in SECONDARY_HEADINGS:
     # Mail addresses that are part of a primary field.
     heading2 = SECONDARY_HEADINGS[heading]
-    a, c = find_field_in_main_maps(heading2, local_field_map, local_org_map)
+    c = find_field_in_main_maps(heading2, local_field_map, local_org_map)
     b = -1
   else:
-    a, b = find_field_in_main_maps(heading, local_field_map, local_org_map)
-    c = -1
-
-  # Found a match.
-  if (a, b, c) != (-1, -1, -1):
-    return a, b, c
-
-  # Special fields.
-  if heading in SPECIAL_HEADINGS:
-    return -1, -1, -1
-
-  print("Field", heading, "not found")
-  sys.exit()
-
-
-def find_field2(heading, local_field_map, local_org_map):
-  """Finds field index and ID if it exists."""
-
-  if heading in SECONDARY_HEADINGS:
-    # Mail addresses that are part of a primary field.
-    heading2 = SECONDARY_HEADINGS[heading]
-    c = find_field_in_main_maps2(heading2, local_field_map, local_org_map)
-    b = -1
-  else:
-    b = find_field_in_main_maps2(heading, local_field_map, local_org_map)
+    b = find_field_in_main_maps(heading, local_field_map, local_org_map)
     c = -1
 
   # Found a match.
@@ -310,7 +246,7 @@ def find_field2(heading, local_field_map, local_org_map):
   sys.exit()
 
 
-def read_field_map2(fname, local_deal_list_id):
+def read_field_map(fname, local_deal_list_id):
   """Read and parse the fields file."""
   with open(fname, 'r') as f:
     fields_list = json.load(f)
@@ -342,22 +278,8 @@ def set_header_maps(csv_headings, local_field_map, local_org_map):
       print("CSV header", h, "does not exist")
       sys.exit()
 
-    index, id1, id2 = find_field(h, local_field_map, local_org_map)
-    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, index, id1, id2)
-
-
-def set_header_maps2(csv_headings, local_field_map, local_org_map):
-  """Set up header tables."""
-
-  for i in range(len(csv_headings)):
-    h = csv_headings[i]
-
-    if not h in HEADING_TO_ENUM:
-      print("CSV header", h, "does not exist")
-      sys.exit()
-
-    id1, id2 = find_field2(h, local_field_map, local_org_map)
-    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo2(h, i, id1, id2)
+    id1, id2 = find_field(h, local_field_map, local_org_map)
+    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, id1, id2)
 
 
 def turn_line_into_map(line, column_to_enum):
@@ -402,31 +324,25 @@ if refresh_flag == 1:
 
 # Read the cached files.
 deal_list_id = read_deal_list_id(LISTS_FILE)
-field_map = read_field_map(FIELDS_FILE)
-field_name_to_enum, field_id_to_enum = read_field_map2(FIELDS_FILE, deal_list_id)
-org_field_map = read_field_map(ORG_FIELDS_FILE)
-print("READING ORG FILE")
-org_field_name_to_enum, org_field_id_to_enum = read_field_map2(ORG_FIELDS_FILE, "None")
+field_name_to_enum, field_id_to_enum = \
+  read_field_map(FIELDS_FILE, deal_list_id)
+org_field_name_to_enum, org_field_id_to_enum = \
+  read_field_map(ORG_FIELDS_FILE, "None")
 
-print("field_name_to_enum")
-pprint.pprint(field_name_to_enum)
-print("field_id_to_enum")
-pprint.pprint(field_id_to_enum)
-# print("org_field_map")
-# pprint.pprint(org_field_map)
-print("org_field_name_to_enum")
-pprint.pprint(org_field_name_to_enum)
-print("org_field_id_to_enum")
-pprint.pprint(org_field_id_to_enum)
+# print("field_name_to_enum")
+# pprint.pprint(field_name_to_enum)
+# print("field_id_to_enum")
+# pprint.pprint(field_id_to_enum)
+# print("org_field_name_to_enum")
+# pprint.pprint(org_field_name_to_enum)
+# print("org_field_id_to_enum")
+# pprint.pprint(org_field_id_to_enum)
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
 
 # Set up field correspondences.
-set_header_maps2(csv_headings, field_name_to_enum, org_field_name_to_enum)
-
-print("GFM")
-print(GlobalFieldMap)
+set_header_maps(csv_headings, field_name_to_enum, org_field_name_to_enum)
 
 # Store the CSV lines more semantically.
 csv_maps = turn_csv_into_map(csv_fields)
