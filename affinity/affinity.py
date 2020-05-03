@@ -262,11 +262,7 @@ def read_field_map(fname, local_deal_list_id):
 
 def set_header_maps(local_csv_headings):
   """Set up header tables."""
-
-  global CSV_COLUMN_TO_ENUM
-  CSV_COLUMN_TO_ENUM = [Fields.ListEntryId for i in range(len(Fields))]
   for i, h in enumerate(local_csv_headings):
-
     if not h in HEADING_TO_ENUM:
       print("CSV header", h, "does not exist")
       sys.exit()
@@ -297,6 +293,25 @@ def time_to_str(aff_str):
   s = aff_str[8:10] + '.' + aff_str[5:7] + '.' + aff_str[0:4]
   return s
 
+
+def get_person(person_id):
+  """Fetches a person from Affinity."""
+  local_resp = get_url(AFFINITY_BASE + 'persons/' + str(person_id))
+  local_js = local_resp.json()
+
+  name = local_js['first_name'] + ' ' + local_js['last_name']
+  mail = local_js['primary_email']
+  return name, mail
+
+
+def get_org_name(org_id):
+  """Fetches an organization name from Affinity."""
+  local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(org_id))
+  local_js = local_resp.json()
+
+  return local_js['name']
+
+
 def get_value_from_field(local_field, enum_value):
   """Parses the value from an Affinity return."""
   if 'value' not in local_field:
@@ -309,14 +324,7 @@ def get_value_from_field(local_field, enum_value):
 
   if enum_value in PRIMARY_ENUMS:
     # This is a person, so we need to get the name and mail.
-    pid = local_field['value']
-    local_resp = get_url(AFFINITY_BASE + 'persons/' + str(pid))
-
-    local_js = local_resp.json()
-
-    name = local_js['first_name'] + ' ' + local_js['last_name']
-    mail = local_js['primary_email']
-    return name, mail
+    return get_person(local_field['value'])
 
   if isinstance(val, dict):
     if 'text' in val:
@@ -326,11 +334,7 @@ def get_value_from_field(local_field, enum_value):
 
   if enum_value == Fields.SourceOrganization:
     # Look up organization name.
-    local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(val))
-    local_js = local_resp.json()
-
-    local_org = local_js['name']
-    return local_org, -1
+    return get_org_name(val), -1
 
   print("Warning: Stuck")
   return -1, -1
