@@ -79,6 +79,10 @@ HEADING_TO_ENUM = {
   'Sourced By (Primary Email)': Fields.SourcedByMail,
   'Reason to decline/ lost': Fields.Reason}
 
+ENUM_TO_HEADING = {val: key for key, val in HEADING_TO_ENUM.items()}
+
+ENUM_TO_CSV_COLUMN = {}
+
 SPECIAL_HEADINGS = {
   'List Entry Id': Fields.ListEntryId,
   'Organization Id': Fields.OrganizationId,
@@ -278,8 +282,7 @@ def read_field_map(fname, local_deal_list_id):
 def set_header_maps(local_csv_headings, local_field_map, local_org_map):
   """Set up header tables."""
 
-  for i in range(len(local_csv_headings)):
-    h = local_csv_headings[i]
+  for i, h in enumerate(local_csv_headings):
 
     if not h in HEADING_TO_ENUM:
       print("CSV header", h, "does not exist")
@@ -292,8 +295,8 @@ def set_header_maps(local_csv_headings, local_field_map, local_org_map):
 def turn_line_into_map(line, column_to_enum):
   """Turn a 0-indexed line into a dictionary."""
   line_map = {}
-  for i in range(len(column_to_enum)):
-    line_map[column_to_enum[i]] = line[i]
+  for i, local_e in enumerate(column_to_enum):
+    line_map[local_e] = line[i]
 
   return line_map
 
@@ -303,7 +306,7 @@ def turn_csv_into_map(local_csv_fields):
   column_to_enum = [0 for i in range(len(GlobalFieldMap))]
   for local_e in GlobalFieldMap:
     g = GlobalFieldMap[local_e]
-    column_to_enum[g.csv_column] = HEADING_TO_ENUM[g.heading]
+    column_to_enum[g.csv_column] = local_e
 
   fields = []
   for line in local_csv_fields:
