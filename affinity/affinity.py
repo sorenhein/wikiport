@@ -88,6 +88,11 @@ SPECIAL_HEADINGS = {
   'Date Added': Fields.DateAdded,
   'Date Decided': Fields.DateDecided}
 
+PRIMARY_ENUMS = {
+  Fields.Owners: Fields.OwnersMail,
+  Fields.SourceName: Fields.SourceNameMail,
+  Fields.SourcedBy: Fields.SourcedByMail}
+
 SECONDARY_HEADINGS = {
   'Owners (Primary Email)': 'Owners',
   'Source Name (Primary Email)': 'Source Name',
@@ -253,6 +258,7 @@ def read_field_map(fname, local_deal_list_id):
 
   local_field_name_to_enum = {}
   local_field_id_to_enum = {}
+  local_enum_to_field_id = {}
 
   for field in fields_list:
     if not field['name'] in HEADING_TO_ENUM:
@@ -264,8 +270,10 @@ def read_field_map(fname, local_deal_list_id):
     e = HEADING_TO_ENUM[field['name']]
     local_field_name_to_enum[field['name']] = e
     local_field_id_to_enum[field['id']] = e
+    local_enum_to_field_id[e] = field['id']
 
-  return local_field_name_to_enum, local_field_id_to_enum
+  return local_field_name_to_enum, local_field_id_to_enum, \
+         local_enum_to_field_id
 
 
 def set_header_maps(csv_headings, local_field_map, local_org_map):
@@ -307,8 +315,82 @@ def turn_csv_into_map(local_csv_fields):
 
 def time_to_str(aff_str):
   """Turns an Affinity time string into dd.mm.yyyy."""
-  s = aff_str[6:9] + '-' + aff_str[3:4] + '-' + aff_str[0:1]
+  s = aff_str[8:10] + '.' + aff_str[5:7] + '.' + aff_str[0:4]
   return s
+
+def get_value_from_field(field, enum_value):
+  """Parses the value from an Affinity return."""
+  if 'value' not in field:
+    print("Warning", field)
+    return -1, -1
+
+  v = field['value']
+  # print("v", v, "IS", type(v))
+  if isinstance(v, str):
+    return v, -1
+  elif enum_value in PRIMARY_ENUMS:
+    # This is a person, so we need to get the name and mail.
+    pid = field['value']
+    local_resp = get_url(AFFINITY_BASE + 'persons/' + str(pid))
+
+    js = local_resp.json()
+    # print("js IS", type(js))
+    # print(json.dumps(js, indent=2))
+
+    name = js['first_name'] + ' ' + js['last_name']
+    mail = js['primary_email']
+    return name, mail
+  elif isinstance(v, dict):
+    if 'text' in v:
+      return v['text'], -1
+    else:
+      print("Expected text")
+      return -1, -1
+
+  else:
+    if enum_value == Fields.SourceOrganization:
+      # Look up organization name.
+      local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(v))
+      js = local_resp.json()
+
+      org = js['name']
+      return org, -1
+    else:
+      print("Warning: Stuck")
+      return -1, -1
+
+
+def get_sector(local_fetch, local_field_id):
+  """Extracts MIG Sector, possibly from multiple fields."""
+  res = ""
+  for e in local_fetch:
+    if e['field_id'] == local_field_id:
+      if res != "":
+        res = res + ", "
+      res = res + e['value']
+
+  return res
+
+
+def compare(csv_entry, fetched_fields):
+  """Compare (for now, print) the vectors."""
+  for e in Fields:
+    if e in csv_entry:
+      cfield = csv_entry[e]
+    else:
+      cfield = ''
+    if e in fetched_fields:
+      ffield = fetched_fields[e]
+    else:
+      ffield = ''
+    if cfield == ffield:
+      diff = ''
+    else:
+      diff = '***'
+
+    print('%20s: %25s %25s %s' % (str(e)[7:], cfield, ffield, diff))
+  
+  print("")
 
 
 # Get command-line arguments.
@@ -324,19 +406,10 @@ if refresh_flag == 1:
 
 # Read the cached files.
 deal_list_id = read_deal_list_id(LISTS_FILE)
-field_name_to_enum, field_id_to_enum = \
+field_name_to_enum, field_id_to_enum, enum_to_field_id = \
   read_field_map(FIELDS_FILE, deal_list_id)
-org_field_name_to_enum, org_field_id_to_enum = \
+org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
   read_field_map(ORG_FIELDS_FILE, "None")
-
-# print("field_name_to_enum")
-# pprint.pprint(field_name_to_enum)
-# print("field_id_to_enum")
-# pprint.pprint(field_id_to_enum)
-# print("org_field_name_to_enum")
-# pprint.pprint(org_field_name_to_enum)
-# print("org_field_id_to_enum")
-# pprint.pprint(org_field_id_to_enum)
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
@@ -349,36 +422,50 @@ csv_maps = turn_csv_into_map(csv_fields)
 
 # Loop over CSV lines.
 for entry in csv_maps:
-  # response = get_url(AFFINITY_BASE + 'organizations/' +
-                     # entry[Fields.OrganizationId])
-
-  # print("Organization")
-  # js = response.json()
-  # print(json.dumps(js, indent = 2))
 
   fetched = {}
-  fetched['List Entry Id'] = entry[Fields.ListEntryId]
-  fetched['Organization Id'] = entry[Fields.OrganizationId]
+
+  # Get the organization fields -- only place to get MIG Sector.
+  response = get_url(AFFINITY_BASE + 'field-values?organization_id=' + 
+                     entry[Fields.OrganizationId])
+
+  fetched[Fields.MIGSector] = get_sector(response.json(),
+    org_enum_to_field_id[Fields.MIGSector])
+
+  fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
+  fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
 
   response = get_url(AFFINITY_BASE + 'lists/' +
                      str(deal_list_id) + '/list-entries/' +
                      entry[Fields.ListEntryId])
   js = response.json()
 
-  fetched['Name'] = js['entity']['name']
-  fetched['Organization URL'] = js['entity']['domain']
+  fetched[Fields.Name] = js['entity']['name']
+  fetched[Fields.OrganizationURL] = js['entity']['domain']
   # TODO Also store 'global' somewhere
 
-  fetched['Date Added'] = time_to_str(js['created_at'])
+  fetched[Fields.DateAdded] = time_to_str(js['created_at'])
 
-  print("Deal List entry")
-  print(json.dumps(js, indent = 2))
+  # print("Deal List entry")
+  # print(json.dumps(js, indent = 2))
 
   response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
                      entry[Fields.ListEntryId])
-  print("Fields")
   js = response.json()
-  print(json.dumps(js, indent=2))
 
+  for field in js:
+    if not field['field_id'] in field_id_to_enum:
+      continue
+
+    e = field_id_to_enum[field['field_id']]
+    v1, v2 = get_value_from_field(field, e)
+
+    fetched[e] = v1
+    if e in PRIMARY_ENUMS:
+      fetched[PRIMARY_ENUMS[e]] = v2
+
+  compare(entry, fetched)
+
+  sys.exit()
 
 sys.exit()

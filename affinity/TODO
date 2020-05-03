@@ -1,6 +1,3 @@
-* Static list of the fields that we're interested in
-* The value could be straight or in a text field; there could be several
-* When we get a person, we have to look up name and mail as well
 * Validate against one another
   - Set in Affinity, not in csv
   - Not set in Affinity, but in csv
@@ -10,3 +7,4 @@
   - Fix in the right way
 * Can we fix "Deal decided"?
 * UTF-8?
+
