@@ -7,7 +7,6 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 import numpy as np
-import pprint
 
 
 AFFINITY_BASE = 'https://api.affinity.co/'
@@ -188,9 +187,9 @@ def read_deal_list_id(fname):
   with open(fname, 'r') as f:
     lists_dict = json.load(f)
 
-  for e in lists_dict:
-    if e['name'] == 'Deal Flow List':
-      return e['id']
+  for local_e in lists_dict:
+    if local_e['name'] == 'Deal Flow List':
+      return local_e['id']
 
   print("Deal Flow List not found")
   sys.exit()
@@ -260,27 +259,27 @@ def read_field_map(fname, local_deal_list_id):
   local_field_id_to_enum = {}
   local_enum_to_field_id = {}
 
-  for field in fields_list:
-    if not field['name'] in HEADING_TO_ENUM:
+  for local_field in fields_list:
+    if not local_field['name'] in HEADING_TO_ENUM:
       continue
 
-    if str(field['list_id']) != str(local_deal_list_id):
+    if str(local_field['list_id']) != str(local_deal_list_id):
       continue
 
-    e = HEADING_TO_ENUM[field['name']]
-    local_field_name_to_enum[field['name']] = e
-    local_field_id_to_enum[field['id']] = e
-    local_enum_to_field_id[e] = field['id']
+    local_e = HEADING_TO_ENUM[local_field['name']]
+    local_field_name_to_enum[local_field['name']] = local_e
+    local_field_id_to_enum[local_field['id']] = local_e
+    local_enum_to_field_id[local_e] = local_field['id']
 
   return local_field_name_to_enum, local_field_id_to_enum, \
          local_enum_to_field_id
 
 
-def set_header_maps(csv_headings, local_field_map, local_org_map):
+def set_header_maps(local_csv_headings, local_field_map, local_org_map):
   """Set up header tables."""
 
-  for i in range(len(csv_headings)):
-    h = csv_headings[i]
+  for i in range(len(local_csv_headings)):
+    h = local_csv_headings[i]
 
     if not h in HEADING_TO_ENUM:
       print("CSV header", h, "does not exist")
@@ -302,8 +301,8 @@ def turn_line_into_map(line, column_to_enum):
 def turn_csv_into_map(local_csv_fields):
   """csv_fields are counted from 0.  Turn into a dictionary."""
   column_to_enum = [0 for i in range(len(GlobalFieldMap))]
-  for e in GlobalFieldMap:
-    g = GlobalFieldMap[e]
+  for local_e in GlobalFieldMap:
+    g = GlobalFieldMap[local_e]
     column_to_enum[g.csv_column] = HEADING_TO_ENUM[g.heading]
 
   fields = []
@@ -318,69 +317,66 @@ def time_to_str(aff_str):
   s = aff_str[8:10] + '.' + aff_str[5:7] + '.' + aff_str[0:4]
   return s
 
-def get_value_from_field(field, enum_value):
+def get_value_from_field(local_field, enum_value):
   """Parses the value from an Affinity return."""
-  if 'value' not in field:
-    print("Warning", field)
+  if 'value' not in local_field:
+    print("Warning", local_field)
     return -1, -1
 
-  v = field['value']
-  # print("v", v, "IS", type(v))
-  if isinstance(v, str):
-    return v, -1
-  elif enum_value in PRIMARY_ENUMS:
+  val = local_field['value']
+  if isinstance(val, str):
+    return val, -1
+
+  if enum_value in PRIMARY_ENUMS:
     # This is a person, so we need to get the name and mail.
-    pid = field['value']
+    pid = local_field['value']
     local_resp = get_url(AFFINITY_BASE + 'persons/' + str(pid))
 
-    js = local_resp.json()
-    # print("js IS", type(js))
-    # print(json.dumps(js, indent=2))
+    local_js = local_resp.json()
 
-    name = js['first_name'] + ' ' + js['last_name']
-    mail = js['primary_email']
+    name = local_js['first_name'] + ' ' + local_js['last_name']
+    mail = local_js['primary_email']
     return name, mail
-  elif isinstance(v, dict):
-    if 'text' in v:
-      return v['text'], -1
-    else:
-      print("Expected text")
-      return -1, -1
 
-  else:
-    if enum_value == Fields.SourceOrganization:
-      # Look up organization name.
-      local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(v))
-      js = local_resp.json()
+  if isinstance(val, dict):
+    if 'text' in val:
+      return val['text'], -1
+    print("Expected text")
+    return -1, -1
 
-      org = js['name']
-      return org, -1
-    else:
-      print("Warning: Stuck")
-      return -1, -1
+  if enum_value == Fields.SourceOrganization:
+    # Look up organization name.
+    local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(val))
+    local_js = local_resp.json()
+
+    local_org = local_js['name']
+    return local_org, -1
+
+  print("Warning: Stuck")
+  return -1, -1
 
 
 def get_sector(local_fetch, local_field_id):
   """Extracts MIG Sector, possibly from multiple fields."""
   res = ""
-  for e in local_fetch:
-    if e['field_id'] == local_field_id:
+  for local_e in local_fetch:
+    if local_e['field_id'] == local_field_id:
       if res != "":
         res = res + ", "
-      res = res + e['value']
+      res = res + local_e['value']
 
   return res
 
 
 def compare(csv_entry, fetched_fields):
   """Compare (for now, print) the vectors."""
-  for e in Fields:
-    if e in csv_entry:
-      cfield = csv_entry[e]
+  for local_e in Fields:
+    if local_e in csv_entry:
+      cfield = csv_entry[local_e]
     else:
       cfield = ''
-    if e in fetched_fields:
-      ffield = fetched_fields[e]
+    if local_e in fetched_fields:
+      ffield = fetched_fields[local_e]
     else:
       ffield = ''
     if cfield == ffield:
@@ -388,8 +384,8 @@ def compare(csv_entry, fetched_fields):
     else:
       diff = '***'
 
-    print('%20s: %25s %25s %s' % (str(e)[7:], cfield, ffield, diff))
-  
+    print('%20s: %25s %25s %s' % (str(local_e)[7:], cfield, ffield, diff))
+
   print("")
 
 
@@ -426,11 +422,11 @@ for entry in csv_maps:
   fetched = {}
 
   # Get the organization fields -- only place to get MIG Sector.
-  response = get_url(AFFINITY_BASE + 'field-values?organization_id=' + 
+  response = get_url(AFFINITY_BASE + 'field-values?organization_id=' +
                      entry[Fields.OrganizationId])
 
-  fetched[Fields.MIGSector] = get_sector(response.json(),
-    org_enum_to_field_id[Fields.MIGSector])
+  fetched[Fields.MIGSector] = \
+    get_sector(response.json(), org_enum_to_field_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]

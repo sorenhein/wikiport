@@ -1,10 +1,16 @@
-* Validate against one another
-  - Set in Affinity, not in csv
-  - Not set in Affinity, but in csv
-  - Both set, but differ
+* Output =, not full field, if the same
+* On Status, strip "3. "
+* On Quality, strip something (probably 2. 2)
+* We're not getting the Wiki URL -- probably also an org field?
+* Don't show fields that are both empty
+* make some more methods like get_sector
+
+* Note global or not
+* UTF-8?
+
+* 
 * Can fix?
   - Global org
   - Fix in the right way
 * Can we fix "Deal decided"?
-* UTF-8?
 
