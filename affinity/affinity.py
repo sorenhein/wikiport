@@ -81,7 +81,7 @@ HEADING_TO_ENUM = {
 
 ENUM_TO_HEADING = {val: key for key, val in HEADING_TO_ENUM.items()}
 
-CSV_COLUMN_TO_ENUM = []
+CSV_COLUMN_TO_ENUM = [Fields.ListEntryId for i in range(len(Fields))]
 
 SPECIAL_HEADINGS = {
   'List Entry Id': Fields.ListEntryId,
@@ -100,25 +100,6 @@ SECONDARY_HEADINGS = {
   'Owners (Primary Email)': 'Owners',
   'Source Name (Primary Email)': 'Source Name',
   'Sourced By (Primary Email)': 'Sourced By'}
-
-class FieldInfo:
-  """Keeps track of knowledge about a field."""
-  def __init__(self, heading, csv_column,
-               field_list_index, secondary_index):
-    self.heading = heading
-    self.csv_column = csv_column
-    self.field_list_index = field_list_index
-    self.secondary_index = secondary_index
-
-  def show(self):
-    """Simple dump."""
-    print("Heading", self.heading)
-    print("csv_column", self.csv_column)
-    print("fieldListIndex", self.field_list_index)
-    print("secondaryIndex", self.secondary_index)
-    print()
-
-GlobalFieldMap = {}
 
 
 # My Excel is German.
@@ -279,7 +260,7 @@ def read_field_map(fname, local_deal_list_id):
          local_enum_to_field_id
 
 
-def set_header_maps(local_csv_headings, local_field_map, local_org_map):
+def set_header_maps(local_csv_headings):
   """Set up header tables."""
 
   global CSV_COLUMN_TO_ENUM
@@ -290,8 +271,6 @@ def set_header_maps(local_csv_headings, local_field_map, local_org_map):
       print("CSV header", h, "does not exist")
       sys.exit()
 
-    id1, id2 = find_field(h, local_field_map, local_org_map)
-    GlobalFieldMap[HEADING_TO_ENUM[h]] = FieldInfo(h, i, id1, id2)
     CSV_COLUMN_TO_ENUM[i] = HEADING_TO_ENUM[h]
 
 
@@ -306,11 +285,6 @@ def turn_line_into_map(line, column_to_enum):
 
 def turn_csv_into_map(local_csv_fields):
   """csv_fields are counted from 0.  Turn into a dictionary."""
-  column_to_enum = [0 for i in range(len(GlobalFieldMap))]
-  for local_e in GlobalFieldMap:
-    g = GlobalFieldMap[local_e]
-    column_to_enum[g.csv_column] = local_e
-
   fields = []
   for line in local_csv_fields:
     fields.append(turn_line_into_map(line, CSV_COLUMN_TO_ENUM))
@@ -417,7 +391,7 @@ org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
 csv_headings, csv_fields = read_csv_file(CSVFile)
 
 # Set up field correspondences.
-set_header_maps(csv_headings, field_name_to_enum, org_field_name_to_enum)
+set_header_maps(csv_headings)
 
 # Store the CSV lines more semantically.
 csv_maps = turn_csv_into_map(csv_fields)
