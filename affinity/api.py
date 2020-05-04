@@ -4,6 +4,7 @@
 import sys
 import json
 import requests
+import collections
 from requests.auth import HTTPBasicAuth
 
 
@@ -138,6 +139,35 @@ def get_field_maps(org_flag, deal_list_id, heading_to_enum):
   return field_name_to_enum, field_id_to_enum, enum_to_field_id
 
 
+def get_dropdown_maps(deal_list_id, heading_to_enum):
+  """Reads the file (again...) for dropdowns."""
+  with open(FIELDS_FILE, 'r') as f:
+    fields_list = json.load(f)
+
+  enum_text_to_id = collections.defaultdict(dict)
+  enum_id_to_text = collections.defaultdict(dict)
+
+  for field in fields_list:
+    if str(field['list_id']) != str(deal_list_id):
+      continue
+
+    if field['dropdown_options'] == []:
+      continue
+
+    if not field['name'] in heading_to_enum:
+      print("Warning", field['name'])
+      continue
+
+    henum = heading_to_enum[field['name']]
+    for item in field['dropdown_options']:
+      text = item['text']
+      iid = item['id']
+      enum_text_to_id[henum][text] = iid
+      enum_id_to_text[henum][iid] = text
+
+  return enum_text_to_id, enum_id_to_text
+
+
 def get_multi_value(response, field_id):
   """Turns a multi-value field into a comma-separated string."""
   res = ""
@@ -148,6 +178,12 @@ def get_multi_value(response, field_id):
       res = res + entry['value']
 
   return res
+
+
+def get_time_string(aff_str):
+  """Turns an Affinity time string into dd.mm.yyyy."""
+  s = aff_str[8:10] + '.' + aff_str[5:7] + '.' + aff_str[0:4]
+  return s
 
 
 def dump_json(name, json_object):

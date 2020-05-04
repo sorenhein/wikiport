@@ -189,28 +189,39 @@ def set_header_maps(local_csv_headings):
     CSV_COLUMN_TO_ENUM[i] = HEADING_TO_ENUM[h]
 
 
-def turn_line_into_map(line, column_to_enum):
+def turn_text_into_dropdown(text, dropdown_map):
+  """Turns text into the corresponding dropdown key."""
+  if text == "":
+    return text
+
+  if text in dropdown_map:
+    return dropdown_map[text]
+
+  print("Warning", text)
+  return text
+
+
+def turn_line_into_map(line, column_to_enum, dropdown_map):
   """Turn a 0-indexed line into a dictionary."""
   line_map = {}
   for i, local_e in enumerate(column_to_enum):
-    line_map[local_e] = line[i]
+    if local_e in dropdown_map:
+      line_map[local_e] = \
+        turn_text_into_dropdown(line[i], dropdown_map[local_e])
+    else:
+      line_map[local_e] = line[i]
 
   return line_map
 
 
-def turn_csv_into_map(local_csv_fields):
+def turn_csv_into_map(local_csv_fields, dropdown_map):
   """csv_fields are counted from 0.  Turn into a dictionary."""
   fields = []
   for line in local_csv_fields:
-    fields.append(turn_line_into_map(line, CSV_COLUMN_TO_ENUM))
+    fields.append(turn_line_into_map(line, 
+                  CSV_COLUMN_TO_ENUM, dropdown_map))
 
   return fields
-
-
-def time_to_str(aff_str):
-  """Turns an Affinity time string into dd.mm.yyyy."""
-  s = aff_str[8:10] + '.' + aff_str[5:7] + '.' + aff_str[0:4]
-  return s
 
 
 def get_value_from_field(local_field, enum_value):
@@ -241,18 +252,6 @@ def get_value_from_field(local_field, enum_value):
   return -1, -1
 
 
-def get_sector(local_fetch, local_field_id):
-  """Extracts MIG Sector, possibly from multiple fields."""
-  res = ""
-  for local_e in local_fetch:
-    if local_e['field_id'] == local_field_id:
-      if res != "":
-        res = res + ", "
-      res = res + local_e['value']
-
-  return res
-
-
 def compare(csv_entry, fetched_fields):
   """Compare (for now, print) the vectors."""
   for local_e in Fields:
@@ -274,6 +273,15 @@ def compare(csv_entry, fetched_fields):
   print("")
 
 
+def print_dict_of_dicts(dict_dict):
+  """Print the dropdown menus for the user."""
+  for enum_val in dict_dict:
+    print("Field:", ENUM_TO_HEADING[enum_val])
+    for key in dict_dict[enum_val]:
+      print('%-10s %s' % (dict_dict[enum_val][key], key))
+    print('')
+
+
 # Get command-line arguments.
 CSVFile, refresh_flag = get_args()
 
@@ -289,6 +297,10 @@ field_name_to_enum, field_id_to_enum, enum_to_field_id = \
 org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
   api.get_field_maps(1, "None", HEADING_TO_ENUM)
 
+enum_text_to_id, enum_id_to_text = \
+  api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
+print_dict_of_dicts(enum_text_to_id)
+
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
 
@@ -296,7 +308,7 @@ csv_headings, csv_fields = read_csv_file(CSVFile)
 set_header_maps(csv_headings)
 
 # Store the CSV lines more semantically.
-csv_maps = turn_csv_into_map(csv_fields)
+csv_maps = turn_csv_into_map(csv_fields, enum_text_to_id)
 
 # Loop over CSV lines.
 for entry in csv_maps:
@@ -307,7 +319,7 @@ for entry in csv_maps:
   json = api.fetch_organization(entry[Fields.OrganizationId])
 
   fetched[Fields.MIGSector] = \
-    get_sector(json, org_enum_to_field_id[Fields.MIGSector])
+    api.get_multi_value(json, org_enum_to_field_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
@@ -318,9 +330,10 @@ for entry in csv_maps:
   fetched[Fields.OrganizationURL] = json['entity']['domain']
   # TODO Also store 'global' somewhere
 
-  fetched[Fields.DateAdded] = time_to_str(json['created_at'])
+  fetched[Fields.DateAdded] = api.get_time_string(json['created_at'])
 
   json = api.fetch_list_fields(entry[Fields.ListEntryId])
+  api.dump_json("fields", json)
 
   for field in json:
     if not field['field_id'] in field_id_to_enum:
