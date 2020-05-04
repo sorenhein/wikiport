@@ -4,26 +4,11 @@
 import sys
 from enum import Enum
 import json
-import requests
-from requests.auth import HTTPBasicAuth
+# import requests
+# from requests.auth import HTTPBasicAuth
 import numpy as np
 import api
 
-
-AFFINITY_BASE = 'https://api.affinity.co/'
-AFFINITY_HEADERS = {'Content-Type': 'application/json'}
-
-# File where personal Affinity API key is stored.
-KEY_FILE = 'key.txt'
-
-# File with output of /lists.
-LISTS_FILE = 'lists.txt'
-
-# File with output of /fields.
-FIELDS_FILE = 'fields.txt'
-
-# File with output of /organizations/fields.
-ORG_FIELDS_FILE = 'orgfields.txt'
 
 class Fields(Enum):
   """All the fields expected in the CSV file."""
@@ -139,48 +124,6 @@ def read_lines(fname):
   return lines
 
 
-def get_url(url):
-  """Reads from the Affinity API."""
-  local_resp = requests.get(url,
-                            auth=HTTPBasicAuth('', token),
-                            headers=AFFINITY_HEADERS)
-
-  if local_resp.status_code != 200:
-    print(local_resp.status_code)
-    sys.exit()
-
-  return local_resp
-
-
-def make_cached_file(url, fname):
-  """Make a cached file from the URL."""
-  local_resp = get_url(url)
-  jsr = local_resp.json()
-  lfile = open(fname, "w")
-  lfile.write(json.dumps(jsr, indent=2))
-  lfile.close()
-
-
-def make_cached_files():
-  """Make the cached files (lists and fields)."""
-  make_cached_file(AFFINITY_BASE + 'lists', LISTS_FILE)
-  make_cached_file(AFFINITY_BASE + 'fields', FIELDS_FILE)
-  make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
-
-
-def read_deal_list_id(fname):
-  """Read and parse the Deal Flow List number from the file."""
-  with open(fname, 'r') as f:
-    lists_dict = json.load(f)
-
-  for local_e in lists_dict:
-    if local_e['name'] == 'Deal Flow List':
-      return local_e['id']
-
-  print("Deal Flow List not found")
-  sys.exit()
-
-
 def read_csv_file(fname):
   """Read and parse the CSV file."""
   lines = read_lines(fname)
@@ -234,31 +177,6 @@ def find_field(heading, local_field_map, local_org_map):
 
   print("Field", heading, "not found")
   sys.exit()
-
-
-def read_field_map(fname, local_deal_list_id):
-  """Read and parse the fields file."""
-  with open(fname, 'r') as f:
-    fields_list = json.load(f)
-
-  local_field_name_to_enum = {}
-  local_field_id_to_enum = {}
-  local_enum_to_field_id = {}
-
-  for local_field in fields_list:
-    if not local_field['name'] in HEADING_TO_ENUM:
-      continue
-
-    if str(local_field['list_id']) != str(local_deal_list_id):
-      continue
-
-    local_e = HEADING_TO_ENUM[local_field['name']]
-    local_field_name_to_enum[local_field['name']] = local_e
-    local_field_id_to_enum[local_field['id']] = local_e
-    local_enum_to_field_id[local_e] = local_field['id']
-
-  return local_field_name_to_enum, local_field_id_to_enum, \
-         local_enum_to_field_id
 
 
 def set_header_maps(local_csv_headings):
@@ -359,20 +277,17 @@ def compare(csv_entry, fetched_fields):
 # Get command-line arguments.
 CSVFile, refresh_flag = get_args()
 
-# Read the personal Affinity token.
-token = read_lines(KEY_FILE)[0]
-
 # Set up the cached files if needed.
 if refresh_flag == 1:
   print("Remaking cache")
-  make_cached_files()
+  api.make_cached_files()
 
 # Read the cached files.
-deal_list_id = read_deal_list_id(LISTS_FILE)
+deal_list_id = api.get_deal_list_id()
 field_name_to_enum, field_id_to_enum, enum_to_field_id = \
-  read_field_map(FIELDS_FILE, deal_list_id)
+  api.get_field_maps(0, deal_list_id, HEADING_TO_ENUM)
 org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
-  read_field_map(ORG_FIELDS_FILE, "None")
+  api.get_field_maps(1, "None", HEADING_TO_ENUM)
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)

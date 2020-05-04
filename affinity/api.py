@@ -13,6 +13,15 @@ AFFINITY_HEADERS = {'Content-Type': 'application/json'}
 
 TOKEN = [line.rstrip() for line in open('key.txt', 'r')][0]
 
+# File with output of /lists.
+LISTS_FILE = 'lists.txt'
+
+# File with output of /fields.
+FIELDS_FILE = 'fields.txt'
+
+# File with output of /organizations/fields.
+ORG_FIELDS_FILE = 'orgfields.txt'
+
 
 def fetch_url(url):
   """Reads from the Affinity API."""
@@ -70,11 +79,63 @@ def fetch_list_fields(list_id):
 
 
 def make_cached_file(url, fname):
-  """Make a cached file from the URL."""
-  response = get_url(url)
+  """Makes a cached file from the URL."""
+  response = fetch_url(url)
   lfile = open(fname, "w")
   lfile.write(json.dumps(response, indent=2))
   lfile.close()
+
+
+def make_cached_files():
+  """Makes the cached files (lists and fields)."""
+  make_cached_file(AFFINITY_BASE + 'lists', LISTS_FILE)
+  make_cached_file(AFFINITY_BASE + 'fields', FIELDS_FILE)
+  make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
+
+
+def get_deal_list_id():
+  """Reads and parses the Deal Flow List number from the list file."""
+  with open(LISTS_FILE, 'r') as f:
+    lists_dict = json.load(f)
+
+  for entry in lists_dict:
+    if entry['name'] == 'Deal Flow List':
+      return entry['id']
+
+  print("Deal Flow List not found")
+  sys.exit()
+
+
+def get_field_maps(org_flag, deal_list_id, heading_to_enum):
+  """Reads and parses the file.  org_flag decides the file."""
+  if org_flag == 1:
+    fname = ORG_FIELDS_FILE
+  else:
+    fname = FIELDS_FILE
+
+  with open(fname, 'r') as f:
+    fields_list = json.load(f)
+
+  field_name_to_enum = {}
+  field_id_to_enum = {}
+  enum_to_field_id = {}
+
+  for field in fields_list:
+    if not field['name'] in heading_to_enum:
+      continue
+
+    if str(field['list_id']) != str(deal_list_id):
+      continue
+
+    fid = field['id']
+    name = field['name']
+    entry = heading_to_enum[name]
+
+    field_name_to_enum[name] = entry
+    field_id_to_enum[fid] = entry
+    enum_to_field_id[entry] = fid
+
+  return field_name_to_enum, field_id_to_enum, enum_to_field_id
 
 
 def get_multi_value(response, field_id):
