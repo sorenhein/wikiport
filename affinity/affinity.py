@@ -405,15 +405,9 @@ for entry in csv_maps:
 
   fetched[Fields.DateAdded] = time_to_str(json['created_at'])
 
-  # print("Deal List entry")
-  # print(json.dumps(js, indent = 2))
+  json = api.fetch_list_fields(entry[Fields.ListEntryId])
 
-  # json = api.fetch_list_fields(entry[Fields.ListEntryId])
-  response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
-                     entry[Fields.ListEntryId])
-  js = response.json()
-
-  for field in js:
+  for field in json:
     if not field['field_id'] in field_id_to_enum:
       continue
 

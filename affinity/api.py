@@ -67,7 +67,7 @@ def fetch_list_fields(list_id):
   response = \
     fetch_url(AFFINITY_BASE + 'field-values?list_entry_id=' + list_id)
 
-  js = response.json()
+  return response.json()
 
 
 def get_multi_value(response, field_id):
@@ -80,3 +80,10 @@ def get_multi_value(response, field_id):
       res = res + entry['value']
 
   return res
+
+
+def dump_json(name, json_object):
+  """Simple print."""
+  print(name)
+  print(json.dumps(json_object, indent=2))
+  print("")
