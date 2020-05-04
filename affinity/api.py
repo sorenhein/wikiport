@@ -6,6 +6,7 @@ import json
 import requests
 import collections
 from requests.auth import HTTPBasicAuth
+import re
 
 
 AFFINITY_BASE = 'https://api.affinity.co/'
@@ -139,9 +140,14 @@ def get_field_maps(org_flag, deal_list_id, heading_to_enum):
   return field_name_to_enum, field_id_to_enum, enum_to_field_id
 
 
-def get_dropdown_maps(deal_list_id, heading_to_enum):
+def get_dropdown_maps(org_flag, deal_list_id, heading_to_enum):
   """Reads the file (again...) for dropdowns."""
-  with open(FIELDS_FILE, 'r') as f:
+  if org_flag == 1:
+    fname = ORG_FIELDS_FILE
+  else:
+    fname = FIELDS_FILE
+
+  with open(fname, 'r') as f:
     fields_list = json.load(f)
 
   enum_text_to_id = collections.defaultdict(dict)
@@ -168,14 +174,35 @@ def get_dropdown_maps(deal_list_id, heading_to_enum):
   return enum_text_to_id, enum_id_to_text
 
 
-def get_multi_value(response, field_id):
+def turn_text_into_dropdown(text, dropdown_map):
+  """Turns text into the corresponding dropdown key."""
+  if text == "":
+    return text
+
+  if text in dropdown_map:
+    return dropdown_map[text]
+
+  # There are differently formatted fields in csv -- fix these.
+  # Remove "1. "
+  text = re.sub("^\d+\. ", "", text)
+  # Turn "1 Interesting" into "1 - Interesting"
+  text = re.sub("^(\d+) ([^-])", r"\1 - \2", text)
+
+  if text in dropdown_map:
+    return dropdown_map[text]
+
+  print("Warning", text)
+  return text
+
+
+def get_multi_value(response, field_id, dropdown_map):
   """Turns a multi-value field into a comma-separated string."""
   res = ""
   for entry in response:
     if entry['field_id'] == field_id:
       if res != "":
         res = res + ", "
-      res = res + entry['value']
+      res = res + str(turn_text_into_dropdown(entry['value'], dropdown_map))
 
   return res
 

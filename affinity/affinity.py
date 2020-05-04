@@ -190,34 +190,13 @@ def set_header_maps(local_csv_headings):
     CSV_COLUMN_TO_ENUM[i] = HEADING_TO_ENUM[h]
 
 
-def turn_text_into_dropdown(text, dropdown_map):
-  """Turns text into the corresponding dropdown key."""
-  if text == "":
-    return text
-
-  if text in dropdown_map:
-    return dropdown_map[text]
-
-  # There are differently formatted fields in csv -- fix these.
-  # Remove "1. "
-  text = re.sub("^\d+\. ", "", text)
-  # Turn "1 Interesting" into "1 - Interesting"
-  text = re.sub("^(\d+) ([^-])", r"\1 - \2", text)
-
-  if text in dropdown_map:
-    return dropdown_map[text]
-
-  print("Warning", text)
-  return text
-
-
 def turn_line_into_map(line, column_to_enum, dropdown_map):
   """Turn a 0-indexed line into a dictionary."""
   line_map = {}
   for i, local_e in enumerate(column_to_enum):
     if local_e in dropdown_map:
       line_map[local_e] = \
-        turn_text_into_dropdown(line[i], dropdown_map[local_e])
+        api.turn_text_into_dropdown(line[i], dropdown_map[local_e])
     else:
       line_map[local_e] = line[i]
 
@@ -308,8 +287,12 @@ org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
   api.get_field_maps(1, "None", HEADING_TO_ENUM)
 
 enum_text_to_id, enum_id_to_text = \
-  api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
+  api.get_dropdown_maps(0, deal_list_id, HEADING_TO_ENUM)
 print_dict_of_dicts(enum_text_to_id)
+
+org_enum_text_to_id, org_enum_id_to_text = \
+  api.get_dropdown_maps(1, "None", HEADING_TO_ENUM)
+print_dict_of_dicts(org_enum_text_to_id)
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
@@ -329,7 +312,8 @@ for entry in csv_maps:
   json = api.fetch_organization(entry[Fields.OrganizationId])
 
   fetched[Fields.MIGSector] = \
-    api.get_multi_value(json, org_enum_to_field_id[Fields.MIGSector])
+    api.get_multi_value(json, org_enum_to_field_id[Fields.MIGSector],
+                        org_enum_text_to_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
@@ -353,7 +337,7 @@ for entry in csv_maps:
     v1, v2 = get_value_from_field(field, e)
 
     if e in enum_text_to_id:
-      v1 = turn_text_into_dropdown(v1, enum_text_to_id[e])
+      v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
 
     fetched[e] = v1
     if e in PRIMARY_ENUMS:
