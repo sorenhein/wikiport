@@ -389,29 +389,26 @@ for entry in csv_maps:
   fetched = {}
 
   # Get the organization fields -- only place to get MIG Sector.
-  response = get_url(AFFINITY_BASE + 'field-values?organization_id=' +
-                     entry[Fields.OrganizationId])
+  json = api.fetch_organization(entry[Fields.OrganizationId])
 
   fetched[Fields.MIGSector] = \
-    get_sector(response.json(), org_enum_to_field_id[Fields.MIGSector])
+    get_sector(json, org_enum_to_field_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
 
-  response = get_url(AFFINITY_BASE + 'lists/' +
-                     str(deal_list_id) + '/list-entries/' +
-                     entry[Fields.ListEntryId])
-  js = response.json()
+  json = api.fetch_list_basics(deal_list_id, entry[Fields.ListEntryId])
 
-  fetched[Fields.Name] = js['entity']['name']
-  fetched[Fields.OrganizationURL] = js['entity']['domain']
+  fetched[Fields.Name] = json['entity']['name']
+  fetched[Fields.OrganizationURL] = json['entity']['domain']
   # TODO Also store 'global' somewhere
 
-  fetched[Fields.DateAdded] = time_to_str(js['created_at'])
+  fetched[Fields.DateAdded] = time_to_str(json['created_at'])
 
   # print("Deal List entry")
   # print(json.dumps(js, indent = 2))
 
+  # json = api.fetch_list_fields(entry[Fields.ListEntryId])
   response = get_url(AFFINITY_BASE + 'field-values?list_entry_id=' +
                      entry[Fields.ListEntryId])
   js = response.json()

@@ -27,7 +27,7 @@ def fetch_url(url):
   return response
 
 
-def fetch_organization(org_id, field_id):
+def fetch_organization(org_id):
   """Fetches the MIG Sector."""
   response = \
     fetch_url(AFFINITY_BASE + 'field-values?organization_id=' + org_id)
