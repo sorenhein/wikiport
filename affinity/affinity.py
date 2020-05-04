@@ -7,6 +7,7 @@ import json
 # import requests
 # from requests.auth import HTTPBasicAuth
 import numpy as np
+import re
 import api
 
 
@@ -197,6 +198,15 @@ def turn_text_into_dropdown(text, dropdown_map):
   if text in dropdown_map:
     return dropdown_map[text]
 
+  # There are differently formatted fields in csv -- fix these.
+  # Remove "1. "
+  text = re.sub("^\d+\. ", "", text)
+  # Turn "1 Interesting" into "1 - Interesting"
+  text = re.sub("^(\d+) ([^-])", r"\1 - \2", text)
+
+  if text in dropdown_map:
+    return dropdown_map[text]
+
   print("Warning", text)
   return text
 
@@ -333,7 +343,7 @@ for entry in csv_maps:
   fetched[Fields.DateAdded] = api.get_time_string(json['created_at'])
 
   json = api.fetch_list_fields(entry[Fields.ListEntryId])
-  api.dump_json("fields", json)
+  # api.dump_json("fields", json)
 
   for field in json:
     if not field['field_id'] in field_id_to_enum:
@@ -341,6 +351,9 @@ for entry in csv_maps:
 
     e = field_id_to_enum[field['field_id']]
     v1, v2 = get_value_from_field(field, e)
+
+    if e in enum_text_to_id:
+      v1 = turn_text_into_dropdown(v1, enum_text_to_id[e])
 
     fetched[e] = v1
     if e in PRIMARY_ENUMS:
