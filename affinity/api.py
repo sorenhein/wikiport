@@ -24,7 +24,7 @@ def fetch_url(url):
     print("Affinity error code", response.status_code)
     sys.exit()
 
-  return response
+  return response.json()
 
 
 def fetch_organization(org_id):
@@ -32,23 +32,22 @@ def fetch_organization(org_id):
   response = \
     fetch_url(AFFINITY_BASE + 'field-values?organization_id=' + org_id)
 
-  return response.json()
+  return response
 
 
 def fetch_organization_name(org_id):
   """Fetches an organization name from Affinity."""
   response = fetch_url(AFFINITY_BASE + 'organizations/' + str(org_id))
 
-  return response.json()['name']
+  return response['name']
 
 
 def fetch_person(person_id):
   """Fetches a person."""
   response = fetch_url(AFFINITY_BASE + 'persons/' + str(person_id))
-  json = response.json()
 
-  name = json['first_name'] + ' ' + json['last_name']
-  mail = json['primary_email']
+  name = response['first_name'] + ' ' + response['last_name']
+  mail = response['primary_email']
 
   return name, mail
 
@@ -59,7 +58,7 @@ def fetch_list_basics(list_id, entry_id):
     fetch_url(AFFINITY_BASE + 'lists/' +
               str(list_id) + '/list-entries/' + entry_id)
 
-  return response.json()
+  return response
 
 
 def fetch_list_fields(list_id):
@@ -67,7 +66,15 @@ def fetch_list_fields(list_id):
   response = \
     fetch_url(AFFINITY_BASE + 'field-values?list_entry_id=' + list_id)
 
-  return response.json()
+  return response
+
+
+def make_cached_file(url, fname):
+  """Make a cached file from the URL."""
+  response = get_url(url)
+  lfile = open(fname, "w")
+  lfile.write(json.dumps(response, indent=2))
+  lfile.close()
 
 
 def get_multi_value(response, field_id):
