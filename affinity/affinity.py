@@ -7,6 +7,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 import numpy as np
+import api
 
 
 AFFINITY_BASE = 'https://api.affinity.co/'
