@@ -11,11 +11,13 @@ AFFINITY_BASE = 'https://api.affinity.co/'
 
 AFFINITY_HEADERS = {'Content-Type': 'application/json'}
 
+TOKEN = [line.rstrip() for line in open('key.txt', 'r')][0]
+
 
 def fetch_url(url):
   """Reads from the Affinity API."""
   response = \
-    requests.get(url, auth=HTTPBasicAuth('', token),
+    requests.get(url, auth=HTTPBasicAuth('', TOKEN),
                  headers=AFFINITY_HEADERS)
 
   if response.status_code != 200:
@@ -35,14 +37,14 @@ def fetch_organization(org_id, field_id):
 
 def fetch_organization_name(org_id):
   """Fetches an organization name from Affinity."""
-  response = get_url(AFFINITY_BASE + 'organizations/' + str(org_id))
+  response = fetch_url(AFFINITY_BASE + 'organizations/' + str(org_id))
 
   return response.json()['name']
 
 
 def fetch_person(person_id):
   """Fetches a person."""
-  response = get_url(AFFINITY_BASE + 'persons/' + str(person_id))
+  response = fetch_url(AFFINITY_BASE + 'persons/' + str(person_id))
   json = response.json()
 
   name = json['first_name'] + ' ' + json['last_name']
@@ -63,7 +65,7 @@ def fetch_list_basics(list_id, entry_id):
 def fetch_list_fields(list_id):
   """Fetches all field values for a list entry."""
   response = \
-    get_url(AFFINITY_BASE + 'field-values?list_entry_id=' + list_id)
+    fetch_url(AFFINITY_BASE + 'field-values?list_entry_id=' + list_id)
 
   js = response.json()
 

@@ -295,16 +295,6 @@ def time_to_str(aff_str):
   return s
 
 
-def get_person(person_id):
-  """Fetches a person from Affinity."""
-  local_resp = get_url(AFFINITY_BASE + 'persons/' + str(person_id))
-  local_js = local_resp.json()
-
-  name = local_js['first_name'] + ' ' + local_js['last_name']
-  mail = local_js['primary_email']
-  return name, mail
-
-
 def get_org_name(org_id):
   """Fetches an organization name from Affinity."""
   local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(org_id))
@@ -325,7 +315,7 @@ def get_value_from_field(local_field, enum_value):
 
   if enum_value in PRIMARY_ENUMS:
     # This is a person, so we need to get the name and mail.
-    return get_person(local_field['value'])
+    return api.fetch_person(local_field['value'])
 
   if isinstance(val, dict):
     if 'text' in val:
