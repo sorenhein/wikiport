@@ -175,7 +175,7 @@ def get_dropdown_maps(org_flag, deal_list_id, heading_to_enum):
 
 
 def turn_text_into_dropdown(text, dropdown_map):
-  """Turns text into the corresponding dropdown key."""
+  """Turns text into the corresponding dropdown key(s)."""
   if text == "":
     return text
 

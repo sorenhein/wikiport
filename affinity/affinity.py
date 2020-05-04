@@ -4,8 +4,6 @@
 import sys
 from enum import Enum
 import json
-# import requests
-# from requests.auth import HTTPBasicAuth
 import numpy as np
 import re
 import api
@@ -190,25 +188,42 @@ def set_header_maps(local_csv_headings):
     CSV_COLUMN_TO_ENUM[i] = HEADING_TO_ENUM[h]
 
 
-def turn_line_into_map(line, column_to_enum, dropdown_map):
+def turn_line_into_map(line, column_to_enum, dropdown_map, org_dropdown_map):
   """Turn a 0-indexed line into a dictionary."""
   line_map = {}
+
+
   for i, local_e in enumerate(column_to_enum):
-    if local_e in dropdown_map:
-      line_map[local_e] = \
-        api.turn_text_into_dropdown(line[i], dropdown_map[local_e])
-    else:
-      line_map[local_e] = line[i]
+    # Split if enumerator is present.
+    n = line[i].count(ENUMERATOR + ' ')
+    items = np.empty(n+1, dtype=object)
+    items = line[i].split(ENUMERATOR + ' ')
+
+    res = ''
+    for item in items:
+      if res != '':
+        res = res + ENUMERATOR + ' '
+
+      if local_e in dropdown_map:
+        res = res + \
+          str(api.turn_text_into_dropdown(item, dropdown_map[local_e]))
+      elif local_e in org_dropdown_map:
+        res = res + \
+          str(api.turn_text_into_dropdown(item, org_dropdown_map[local_e]))
+      else:
+        res = res + line[i]
+
+    line_map[local_e] = res
 
   return line_map
 
 
-def turn_csv_into_map(local_csv_fields, dropdown_map):
+def turn_csv_into_map(local_csv_fields, dropdown_map, org_dropdown_map):
   """csv_fields are counted from 0.  Turn into a dictionary."""
   fields = []
   for line in local_csv_fields:
     fields.append(turn_line_into_map(line, 
-                  CSV_COLUMN_TO_ENUM, dropdown_map))
+                  CSV_COLUMN_TO_ENUM, dropdown_map, org_dropdown_map))
 
   return fields
 
@@ -248,16 +263,24 @@ def compare(csv_entry, fetched_fields):
       cfield = csv_entry[local_e]
     else:
       cfield = ''
+
     if local_e in fetched_fields:
       ffield = fetched_fields[local_e]
     else:
       ffield = ''
+
     if cfield == ffield:
       diff = ''
     else:
       diff = '***'
 
-    print('%20s: %25s %25s %s' % (str(local_e)[7:], cfield, ffield, diff))
+    if cfield == '' and ffield == '':
+      continue
+
+    if str(cfield) == str(ffield):
+      ffield = "="
+
+    print('%20s: %30s %15s %s' % (str(local_e)[7:], cfield, ffield, diff))
 
   print("")
 
@@ -301,7 +324,8 @@ csv_headings, csv_fields = read_csv_file(CSVFile)
 set_header_maps(csv_headings)
 
 # Store the CSV lines more semantically.
-csv_maps = turn_csv_into_map(csv_fields, enum_text_to_id)
+csv_maps = \
+  turn_csv_into_map(csv_fields, enum_text_to_id, org_enum_text_to_id)
 
 # Loop over CSV lines.
 for entry in csv_maps:

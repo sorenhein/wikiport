@@ -1,9 +1,5 @@
-* Output =, not full field, if the same
-* On Status, strip "3. "
-* On Quality, strip something (probably 2. 2)
-* We're not getting the Wiki URL -- probably also an org field?
-* Don't show fields that are both empty
-* make some more methods like get_sector
+* Merge the org and field maps?
+* Store and empty website as None in csv
 
 * Note global or not
 * UTF-8?
