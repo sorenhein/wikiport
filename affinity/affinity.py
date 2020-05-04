@@ -295,14 +295,6 @@ def time_to_str(aff_str):
   return s
 
 
-def get_org_name(org_id):
-  """Fetches an organization name from Affinity."""
-  local_resp = get_url(AFFINITY_BASE + 'organizations/' + str(org_id))
-  local_js = local_resp.json()
-
-  return local_js['name']
-
-
 def get_value_from_field(local_field, enum_value):
   """Parses the value from an Affinity return."""
   if 'value' not in local_field:
@@ -325,7 +317,7 @@ def get_value_from_field(local_field, enum_value):
 
   if enum_value == Fields.SourceOrganization:
     # Look up organization name.
-    return get_org_name(val), -1
+    return api.fetch_organization_name(val), -1
 
   print("Warning: Stuck")
   return -1, -1
