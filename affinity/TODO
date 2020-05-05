@@ -1,7 +1,4 @@
 * Catch orgs that don't exist (this will happen)
-* Merge the org and field maps?
-* Store an empty website as None in csv
-* Note global or not
 * Start on the write part
   - Make statistics to start with, don't write yet
 * UTF-8?
