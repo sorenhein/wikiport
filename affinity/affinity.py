@@ -306,12 +306,8 @@ field_name_to_enum, field_id_to_enum, enum_to_field_id = \
   api.get_field_maps(deal_list_id, HEADING_TO_ENUM)
 
 enum_text_to_id, enum_id_to_text = \
-  api.get_dropdown_maps(0, deal_list_id, HEADING_TO_ENUM)
+  api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
 print_dict_of_dicts(enum_text_to_id)
-
-org_enum_text_to_id, org_enum_id_to_text = \
-  api.get_dropdown_maps(1, "None", HEADING_TO_ENUM)
-print_dict_of_dicts(org_enum_text_to_id)
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
@@ -321,7 +317,7 @@ set_header_maps(csv_headings)
 
 # Store the CSV lines more semantically.
 csv_maps = \
-  turn_csv_into_map(csv_fields, enum_text_to_id, org_enum_text_to_id)
+  turn_csv_into_map(csv_fields, enum_text_to_id, enum_text_to_id)
 
 # Loop over CSV lines.
 for entry in csv_maps:
@@ -333,7 +329,7 @@ for entry in csv_maps:
 
   fetched[Fields.MIGSector] = \
     api.get_multi_value(json, enum_to_field_id[Fields.MIGSector],
-                        org_enum_text_to_id[Fields.MIGSector])
+                        enum_text_to_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]

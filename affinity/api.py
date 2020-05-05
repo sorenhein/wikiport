@@ -140,21 +140,21 @@ def get_field_maps(deal_list_id, heading_to_enum):
   return field_name_to_enum, field_id_to_enum, enum_to_field_id
 
 
-def get_dropdown_maps(org_flag, deal_list_id, heading_to_enum):
-  """Reads the file (again...) for dropdowns."""
-  if org_flag == 1:
-    fname = ORG_FIELDS_FILE
-  else:
-    fname = FIELDS_FILE
-
-  with open(fname, 'r') as f:
-    fields_list = json.load(f)
+def get_dropdown_maps(deal_list_id, heading_to_enum):
+  """Reads both field files (again...) for dropdowns."""
+  with open(FIELDS_FILE, 'r') as f:
+    fields_list1 = json.load(f)
+  with open(ORG_FIELDS_FILE, 'r') as f:
+    fields_list2 = json.load(f)
+  fields_list = fields_list1 + fields_list2
+  id_list = [str(deal_list_id)] * len(fields_list1) + \
+            ['None'] * len(fields_list2)
 
   enum_text_to_id = collections.defaultdict(dict)
   enum_id_to_text = collections.defaultdict(dict)
 
-  for field in fields_list:
-    if str(field['list_id']) != str(deal_list_id):
+  for field, iid in zip(fields_list, id_list):
+    if str(field['list_id']) != iid:
       continue
 
     if field['dropdown_options'] == []:
