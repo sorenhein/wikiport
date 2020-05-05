@@ -195,6 +195,14 @@ def turn_text_into_dropdown(text, dropdown_map):
   return text
 
 
+def get_simple_value(response, field_id):
+  """Gets a simple value."""
+  for entry in response:
+    if entry['field_id'] == field_id:
+      return entry['value']
+  return ''
+  
+
 def get_multi_value(response, field_id, dropdown_map):
   """Turns a multi-value field into a comma-separated string."""
   res = ""

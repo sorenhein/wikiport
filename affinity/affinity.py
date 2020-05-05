@@ -215,7 +215,6 @@ def turn_line_into_map(line, column_to_enum, dropdown_map):
   """Turn a 0-indexed line into a dictionary."""
   line_map = {}
 
-
   for i, local_e in enumerate(column_to_enum):
     # Split if enumerator is present.
     n = line[i].count(ENUMERATOR + ' ')
@@ -231,7 +230,7 @@ def turn_line_into_map(line, column_to_enum, dropdown_map):
         res = res + \
           str(api.turn_text_into_dropdown(item, dropdown_map[local_e]))
       else:
-        res = res + line[i]
+        res = res + item
 
     # To be consistent with Affinity.
     if local_e == Fields.OrganizationURL and res == '':
@@ -259,7 +258,7 @@ def get_value_from_field(local_field, enum_value):
     return -1, -1
 
   val = local_field['value']
-  if isinstance(val, str):
+  if isinstance(val, str) or isinstance(val, float):
     return val, -1
 
   if enum_value in PRIMARY_ENUMS:
@@ -277,6 +276,9 @@ def get_value_from_field(local_field, enum_value):
     return api.fetch_organization_name(val), -1
 
   print("Warning: Stuck")
+  print("enum_value", enum_value)
+  print("type", type(val))
+  print("local_field", local_field)
   return -1, -1
 
 
@@ -417,15 +419,20 @@ for entry in csv_maps:
 
   # Get the organization fields -- only place to get MIG Sector.
   json = api.fetch_organization(entry[Fields.OrganizationId])
+  # api.dump_json("org", json)
 
   fetched[Fields.MIGSector] = \
     api.get_multi_value(json, enum_to_field_id[Fields.MIGSector],
                         enum_text_to_id[Fields.MIGSector])
+  
+  fetched[Fields.WikiURL] = \
+    api.get_simple_value(json, enum_to_field_id[Fields.WikiURL]);
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
 
   json = api.fetch_list_basics(deal_list_id, entry[Fields.ListEntryId])
+  # api.dump_json("basics", json)
 
   fetched[Fields.Name] = json['entity']['name']
   fetched[Fields.OrganizationURL] = json['entity']['domain']
@@ -446,9 +453,15 @@ for entry in csv_maps:
     if e in enum_text_to_id:
       v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
 
-    fetched[e] = v1
-    if e in PRIMARY_ENUMS:
-      fetched[PRIMARY_ENUMS[e]] = v2
+    if e in fetched:
+      # Multi-field.
+      fetched[e] += ', ' + str(v1)
+      if e in PRIMARY_ENUMS:
+        fetched[PRIMARY_ENUMS[e]] += ', ' + str(v2)
+    else:
+      fetched[e] = str(v1)
+      if e in PRIMARY_ENUMS:
+        fetched[PRIMARY_ENUMS[e]] = str(v2)
 
   matches = compare(entry, fetched, global_flag, matches)
   # sys.exit()
