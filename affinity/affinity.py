@@ -6,6 +6,7 @@ from enum import Enum
 import json
 import numpy as np
 import re
+import collections
 import api
 
 
@@ -86,6 +87,28 @@ SECONDARY_HEADINGS = {
   'Source Name (Primary Email)': 'Source Name',
   'Sourced By (Primary Email)': 'Sourced By'}
 
+
+class Matches(Enum):
+  """All the fields expected in the CSV file."""
+  NoData = 0
+  OnlyCSVGlobal = 1
+  OnlyCSVLocal = 2
+  OnlyAffinityGlobal = 3
+  OnlyAffinityLocal = 4
+  BothSame = 5
+  BothDiffGlobal = 6
+  BothDiffLocal = 7
+
+MATCH_TO_NAME = {
+  Matches.NoData: 'none',
+  Matches.OnlyCSVGlobal: 'csv-g',
+  Matches.OnlyCSVLocal: 'csv-l',
+  Matches.OnlyAffinityGlobal: 'aff-g',
+  Matches.OnlyAffinityLocal: 'aff-l',
+  Matches.BothSame: 'same',
+  Matches.BothDiffGlobal: 'diff-g',
+  Matches.BothDiffLocal: 'diff-l'}
+  
 
 # My Excel is German.
 SEPARATOR = ';'
@@ -257,7 +280,31 @@ def get_value_from_field(local_field, enum_value):
   return -1, -1
 
 
-def compare(csv_entry, fetched_fields):
+def classify_match(csv_field, aff_field, my_global_flag):
+  """Classify according to the Matches enum."""
+  if csv_field == '':
+    if aff_field == '':
+      e = Matches.NoData
+    elif my_global_flag == 1:
+      e = Matches.OnlyAffinityGlobal
+    else:
+      e = Matches.OnlyAffinityLocal
+  elif aff_field == '':
+    if my_global_flag == 1:
+      e = Matches.OnlyCSVGlobal
+    else:
+      e = Matches.OnlyCSVLocal
+  elif str(csv_field) == str(aff_field):
+      e = Matches.BothSame
+  elif my_global_flag == 1:
+    e = Matches.BothDiffGlobal
+  else:
+    e = Matches.BothDiffLocal
+
+  return e
+
+
+def compare(csv_entry, fetched_fields, my_global_flag, matches):
   """Compare (for now, print) the vectors."""
   for local_e in Fields:
     if local_e in csv_entry:
@@ -269,6 +316,9 @@ def compare(csv_entry, fetched_fields):
       ffield = fetched_fields[local_e]
     else:
       ffield = ''
+
+    c = classify_match(cfield, ffield, my_global_flag)
+    matches[local_e][c] += 1
 
     if cfield == '' and ffield == '':
       continue
@@ -282,6 +332,7 @@ def compare(csv_entry, fetched_fields):
     print('%20s: %30s %15s %s' % (str(local_e)[7:], cfield, ffield, diff))
 
   print("")
+  return matches
 
 
 def print_dict_of_dicts(dict_dict):
@@ -293,6 +344,40 @@ def print_dict_of_dicts(dict_dict):
     print('')
 
 
+def print_dict_dict_stats(dict_dict):
+  """Print a 2D array."""
+
+  # Print the header.
+  s = '%-20s' % ''
+  sum_col = {}
+  for key in MATCH_TO_NAME:
+    s += '%7s' % MATCH_TO_NAME[key]
+    sum_col[key] = 0
+  s += '%7s' % 'SUM'
+  print(s)
+
+  for key in dict_dict:
+    # Print each line.
+    sum_row = 0
+    s = '%-20s' % str(key)[7:]
+    for key_key in dict_dict[key]:
+      v = dict_dict[key][key_key]
+      if v == 0:
+        s += '%7s' % '-'
+      else:
+        s += '%7d' % v
+      sum_row += v
+      sum_col[key_key] += v
+    s += '%7d' % sum_row
+    print(s)
+
+  s = '%-20s' % 'SUM'
+  for key in sum_col:
+    s += '%7d' % sum_col[key]
+  print(s)
+  print('')
+
+
 # Get command-line arguments.
 CSVFile, refresh_flag = get_args()
 
@@ -301,11 +386,12 @@ if refresh_flag == 1:
   print("Remaking cache")
   api.make_cached_files()
 
-# Read the cached files.
+# Read the cached files to get the field mapping.
 deal_list_id = api.get_deal_list_id()
 field_name_to_enum, field_id_to_enum, enum_to_field_id = \
   api.get_field_maps(deal_list_id, HEADING_TO_ENUM)
 
+# Read them again to get the dropdown choices.
 enum_text_to_id, enum_id_to_text = \
   api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
 print_dict_of_dicts(enum_text_to_id)
@@ -318,6 +404,11 @@ set_header_maps(csv_headings)
 
 # Store the CSV lines more semantically.
 csv_maps = turn_csv_into_map(csv_fields, enum_text_to_id)
+
+matches = collections.defaultdict(dict)
+for entry in Fields:
+  for match in Matches:
+    matches[entry][match] = 0
 
 # Loop over CSV lines.
 for entry in csv_maps:
@@ -359,8 +450,8 @@ for entry in csv_maps:
     if e in PRIMARY_ENUMS:
       fetched[PRIMARY_ENUMS[e]] = v2
 
-  compare(entry, fetched)
+  matches = compare(entry, fetched, global_flag, matches)
+  # sys.exit()
 
-  sys.exit()
-
+print_dict_dict_stats(matches)
 sys.exit()
