@@ -108,25 +108,25 @@ def get_deal_list_id():
   sys.exit()
 
 
-def get_field_maps(org_flag, deal_list_id, heading_to_enum):
-  """Reads and parses the file.  org_flag decides the file."""
-  if org_flag == 1:
-    fname = ORG_FIELDS_FILE
-  else:
-    fname = FIELDS_FILE
-
-  with open(fname, 'r') as f:
-    fields_list = json.load(f)
+def get_field_maps(deal_list_id, heading_to_enum):
+  """Reads and parses both cached files that contain fields."""
+  with open(FIELDS_FILE, 'r') as f:
+    fields_list1 = json.load(f)
+  with open(ORG_FIELDS_FILE, 'r') as f:
+    fields_list2 = json.load(f)
+  fields_list = fields_list1 + fields_list2
+  id_list = [str(deal_list_id)] * len(fields_list1) + \
+            ['None'] * len(fields_list2)
 
   field_name_to_enum = {}
   field_id_to_enum = {}
   enum_to_field_id = {}
 
-  for field in fields_list:
+  for field, iid in zip(fields_list, id_list):
     if not field['name'] in heading_to_enum:
       continue
 
-    if str(field['list_id']) != str(deal_list_id):
+    if str(field['list_id']) != iid:
       continue
 
     fid = field['id']

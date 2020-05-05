@@ -269,16 +269,14 @@ def compare(csv_entry, fetched_fields):
     else:
       ffield = ''
 
-    if cfield == ffield:
+    if str(cfield) == str(ffield):
       diff = ''
+      ffield = '='
     else:
       diff = '***'
 
     if cfield == '' and ffield == '':
       continue
-
-    if str(cfield) == str(ffield):
-      ffield = "="
 
     print('%20s: %30s %15s %s' % (str(local_e)[7:], cfield, ffield, diff))
 
@@ -305,9 +303,7 @@ if refresh_flag == 1:
 # Read the cached files.
 deal_list_id = api.get_deal_list_id()
 field_name_to_enum, field_id_to_enum, enum_to_field_id = \
-  api.get_field_maps(0, deal_list_id, HEADING_TO_ENUM)
-org_field_name_to_enum, org_field_id_to_enum, org_enum_to_field_id = \
-  api.get_field_maps(1, "None", HEADING_TO_ENUM)
+  api.get_field_maps(deal_list_id, HEADING_TO_ENUM)
 
 enum_text_to_id, enum_id_to_text = \
   api.get_dropdown_maps(0, deal_list_id, HEADING_TO_ENUM)
@@ -336,7 +332,7 @@ for entry in csv_maps:
   json = api.fetch_organization(entry[Fields.OrganizationId])
 
   fetched[Fields.MIGSector] = \
-    api.get_multi_value(json, org_enum_to_field_id[Fields.MIGSector],
+    api.get_multi_value(json, enum_to_field_id[Fields.MIGSector],
                         org_enum_text_to_id[Fields.MIGSector])
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]

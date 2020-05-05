@@ -1,12 +1,10 @@
+* Catch orgs that don't exist (this will happen)
 * Merge the org and field maps?
-* Store and empty website as None in csv
-
+* Store an empty website as None in csv
 * Note global or not
+* Start on the write part
+  - Make statistics to start with, don't write yet
 * UTF-8?
 
-* 
-* Can fix?
-  - Global org
-  - Fix in the right way
 * Can we fix "Deal decided"?
-
+* Make Country field?
