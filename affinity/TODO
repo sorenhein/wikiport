@@ -1,8 +1,6 @@
-* People with mails (Owners, SourcedBy) should be person id.
-
-
 * Start on the write part
   - Make statistics to start with, don't write yet
+  - AmVac csv 40.000.000 -- is it only that column or general problem?
 
 * csv skip first 3 bytes
 * skip inputs with new org or deal

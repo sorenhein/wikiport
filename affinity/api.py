@@ -28,16 +28,42 @@ ORG_FIELDS_FILE = 'orgfields.txt'
 NAMES_FILE = 'names.txt'
 
 
+def err_msg(response, text):
+  """Common code for error message."""
+  if response.status_code != 200:
+    print("Affinity get error code", response.status_code)
+    print("Source:", text)
+    print("Response", response)
+    sys.exit()
+
+
 def fetch_url(url):
   """Reads from the Affinity API."""
   response = \
     requests.get(url, auth=HTTPBasicAuth('', TOKEN),
                  headers=AFFINITY_HEADERS)
 
-  if response.status_code != 200:
-    print("Affinity error code", response.status_code)
-    sys.exit()
+  err_msg(response, "get")
+  return response.json()
 
+
+def put_url(url, payload):
+  """Puts to the Affinity API."""
+  response = \
+    requests.put(url, json=payload, auth=HTTPBasicAuth('', TOKEN),
+                 headers=AFFINITY_HEADERS)
+
+  err_msg(response, "put")
+  return response.json()
+
+
+def post_url(url, payload):
+  """Posts to the Affinity API."""
+  response = \
+    requests.post(url, json=payload, auth=HTTPBasicAuth('', TOKEN),
+                 headers=AFFINITY_HEADERS)
+
+  err_msg(response, "post")
   return response.json()
 
 
@@ -193,7 +219,6 @@ def add_name_dropdowns(enum_text_to_id, enum_id_to_text, heading_to_enum):
     fields_list = json.load(f)
 
   for field in fields_list:
-    print("Field", field)
     text = field['first_name'] + ' ' + field['last_name']
     iid = field['id']
     mail = field['primary_email']
@@ -265,3 +290,24 @@ def dump_json(name, json_object):
   print(name)
   print(json.dumps(json_object, indent=2))
   print("")
+
+
+def put_specific_field(field_value_id, value):
+  """Put the changes."""
+  put_url(AFFINITY_BASE + 'field-values/' + field_value_id, value)
+
+
+def post_specific_field(field_id, entity_id, value):
+  """Post a new field to the right place in the tables."""
+  payload = {'field_id': field_id, 'entity_id': entity_id, 'value': value}
+
+  post_url(AFFINITY_BASE + 'field-values', payload)
+
+
+def post_specific_field2(field_id, entity_id, list_entry_id, value):
+  """Post a new field to the right place in the tables."""
+  payload = {'field_id': field_id, 'entity_id': entity_id,
+             'list_entry_id': list_entry_id, 'value': value}
+
+
+  post_url(AFFINITY_BASE + 'field-values', payload)
