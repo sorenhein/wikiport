@@ -1,5 +1,11 @@
+* People with mails (Owners, SourcedBy) should be person id.
+
+
 * Start on the write part
   - Make statistics to start with, don't write yet
+
+* csv skip first 3 bytes
+* skip inputs with new org or deal
 
 * Can we fix "Deal decided"?
 * Make Country field?

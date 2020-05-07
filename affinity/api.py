@@ -24,6 +24,9 @@ FIELDS_FILE = 'fields.txt'
 # File with output of /organizations/fields.
 ORG_FIELDS_FILE = 'orgfields.txt'
 
+# File with MIG names, mails and person ID's.
+NAMES_FILE = 'names.txt'
+
 
 def fetch_url(url):
   """Reads from the Affinity API."""
@@ -88,11 +91,21 @@ def make_cached_file(url, fname):
   lfile.close()
 
 
-def make_cached_files():
+def make_cached_files(MIG_MAILS):
   """Makes the cached files (lists and fields)."""
   make_cached_file(AFFINITY_BASE + 'lists', LISTS_FILE)
   make_cached_file(AFFINITY_BASE + 'fields', FIELDS_FILE)
   make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
+
+  names = []
+  for mail in MIG_MAILS:
+    # As we query by mail, the response should always be right.
+    response = fetch_url(AFFINITY_BASE + 'persons?term=' + mail)
+    names.append(response['persons'][0])
+
+  lfile = open(NAMES_FILE, "w")
+  lfile.write(json.dumps(names, indent=2))
+  lfile.close()
 
 
 def get_deal_list_id():
@@ -173,6 +186,32 @@ def get_dropdown_maps(deal_list_id, heading_to_enum):
 
   return enum_text_to_id, enum_id_to_text
 
+
+def add_name_dropdowns(enum_text_to_id, enum_id_to_text, heading_to_enum):
+  # Also do the MIG names as honorary dropdowns.
+  with open(NAMES_FILE, 'r') as f:
+    fields_list = json.load(f)
+
+  for field in fields_list:
+    print("Field", field)
+    text = field['first_name'] + ' ' + field['last_name']
+    iid = field['id']
+    mail = field['primary_email']
+
+    enum_text_to_id[heading_to_enum['Owners']][text] = iid
+    enum_id_to_text[heading_to_enum['Owners']][iid] = text
+  
+    enum_text_to_id[heading_to_enum['Owners (Primary Email)']][mail] = iid
+    enum_id_to_text[heading_to_enum['Owners (Primary Email)']][iid] = mail
+  
+    enum_text_to_id[heading_to_enum['Sourced By']][text] = iid
+    enum_id_to_text[heading_to_enum['Sourced By']][iid] = text
+  
+    enum_text_to_id[heading_to_enum['Sourced By (Primary Email)']][mail] = iid
+    enum_id_to_text[heading_to_enum['Sourced By (Primary Email)']][iid] = mail
+
+  return enum_text_to_id, enum_id_to_text
+  
 
 def turn_text_into_dropdown(text, dropdown_map):
   """Turns text into the corresponding dropdown key(s)."""

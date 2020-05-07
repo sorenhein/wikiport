@@ -108,7 +108,20 @@ MATCH_TO_NAME = {
   Matches.BothSame: 'same',
   Matches.BothDiffGlobal: 'diff-g',
   Matches.BothDiffLocal: 'diff-l'}
-  
+
+MIG_MAILS = {
+  'at@mig.ag',
+  'bb@mig.ag',
+  'jk@mig.ag',
+  'ksg@mig.ag',
+  'mg@mig.ag',
+  'mk@mig.ag',
+  'mm@mig.ag',
+  'ok@mig.ag',
+  'sh@mig.ag',
+  'kf@mig.ag',
+  'info@mig.ag',
+  'businessplan@mig.ag'}
 
 # My Excel is German.
 SEPARATOR = ';'
@@ -308,6 +321,9 @@ def classify_match(csv_field, aff_field, my_global_flag):
 
 def compare(csv_entry, fetched_fields, my_global_flag, matches):
   """Compare (for now, print) the vectors."""
+  entry_changed = {}
+  change_flag = 0
+
   for local_e in Fields:
     if local_e in csv_entry:
       cfield = csv_entry[local_e]
@@ -323,18 +339,24 @@ def compare(csv_entry, fetched_fields, my_global_flag, matches):
     matches[local_e][c] += 1
 
     if cfield == '' and ffield == '':
+      entry_changed[local_e] = 0
+      change_flag = 0
       continue
 
     if str(cfield) == str(ffield):
       diff = ''
       ffield = '='
+      entry_changed[local_e] = 0
+      change_flag = 0
     else:
-      diff = '***'
+      diff = MATCH_TO_NAME[c]
+      entry_changed[local_e] = 1
+      change_flag = 1
 
     print('%20s: %30s %15s %s' % (str(local_e)[7:], cfield, ffield, diff))
 
   print("")
-  return matches
+  return change_flag, entry_changed, matches
 
 
 def print_dict_of_dicts(dict_dict):
@@ -386,7 +408,7 @@ CSVFile, refresh_flag = get_args()
 # Set up the cached files if needed.
 if refresh_flag == 1:
   print("Remaking cache")
-  api.make_cached_files()
+  api.make_cached_files(MIG_MAILS)
 
 # Read the cached files to get the field mapping.
 deal_list_id = api.get_deal_list_id()
@@ -396,6 +418,11 @@ field_name_to_enum, field_id_to_enum, enum_to_field_id = \
 # Read them again to get the dropdown choices.
 enum_text_to_id, enum_id_to_text = \
   api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
+
+# Add honorary dropdowns for MIG names.
+enum_text_to_id, enum_id_to_text = \
+  api.add_name_dropdowns(enum_text_to_id, enum_id_to_text, HEADING_TO_ENUM)
+
 print_dict_of_dicts(enum_text_to_id)
 
 # Read the CSV file.
@@ -463,7 +490,12 @@ for entry in csv_maps:
       if e in PRIMARY_ENUMS:
         fetched[PRIMARY_ENUMS[e]] = str(v2)
 
-  matches = compare(entry, fetched, global_flag, matches)
+  change_flag, changes_entry, matches = \
+    compare(entry, fetched, global_flag, matches)
+
+  if change_flag == 0:
+    continue
+
   # sys.exit()
 
 print_dict_dict_stats(matches)
