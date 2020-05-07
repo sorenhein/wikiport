@@ -87,6 +87,10 @@ SECONDARY_HEADINGS = {
   'Source Name (Primary Email)': 'Source Name',
   'Sourced By (Primary Email)': 'Sourced By'}
 
+ASSOCIATED_HEADINGS = {
+  Fields.Owners: Fields.OwnersMail,
+  Fields.SourcedBy: Fields.SourcedByMail}
+
 
 class Matches(Enum):
   """All the fields expected in the CSV file."""
@@ -355,7 +359,7 @@ def compare(csv_entry, fetched_fields, my_global_flag, matches):
 
     print('%20s: %30s %15s %s' % (str(local_e)[7:], cfield, ffield, diff))
 
-  print("")
+  print("", flush=True)
   return change_flag, entry_changed, matches
 
 
@@ -455,6 +459,7 @@ field_name_to_enum, field_id_to_enum, enum_to_field_id = \
 enum_text_to_id, enum_id_to_text = \
   api.get_dropdown_maps(deal_list_id, HEADING_TO_ENUM)
 
+
 # Add honorary dropdowns for MIG names.
 enum_text_to_id, enum_id_to_text = \
   api.add_name_dropdowns(enum_text_to_id, enum_id_to_text, HEADING_TO_ENUM)
@@ -475,12 +480,12 @@ for entry in Fields:
   for match in Matches:
     matches[entry][match] = 0
 
-print("deal_list_id", deal_list_id)
-api.put_specific_field('500478743', {'value': 27000000})
+# print("deal_list_id", deal_list_id)
+# api.put_specific_field('500478743', {'value': 27000000})
 # api.put_specific_field('500478746', {'value': "USD"})
-api.post_specific_field2(504481, 15624246, 56429, "USD")
+# api.post_specific_field2(504481, 15624246, 56429, "USD")
 # api.post_specific_field(504481, 15624246, "USD")
-sys.exit()
+# sys.exit()
 
 # field_id: what it says
 # entity_id: The *org* ID
@@ -515,8 +520,8 @@ for entry in csv_maps:
   fetched[Fields.DateAdded] = api.get_time_string(json['created_at'])
 
   json = api.fetch_list_fields(entry[Fields.ListEntryId])
-  api.dump_json("fields", json)
-  sys.exit()
+  # api.dump_json("fields", json)
+  # sys.exit()
 
   for field in json:
     if not field['field_id'] in field_id_to_enum:
@@ -527,6 +532,10 @@ for entry in csv_maps:
 
     if e in enum_text_to_id:
       v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
+
+    if e in ASSOCIATED_HEADINGS:
+      eprime = ASSOCIATED_HEADINGS[e]
+      v2 = api.turn_text_into_dropdown(v2, enum_text_to_id[eprime])
 
     if e in fetched:
       # Multi-field.
@@ -544,10 +553,10 @@ for entry in csv_maps:
   if change_flag == 0:
     continue
 
-  changed_json = \
-    make_deal_changes(entry, changes_entry, field_name_to_enum, 
-                      enum_to_field_id, enum_text_to_id)
-  api.put_deal_fields(entry[Fields.ListEntryId], changed_json)
+  # changed_json = \
+    # make_deal_changes(entry, changes_entry, field_name_to_enum, 
+                      # enum_to_field_id, enum_text_to_id)
+  # api.put_deal_fields(entry[Fields.ListEntryId], changed_json)
 
   # sys.exit()
 

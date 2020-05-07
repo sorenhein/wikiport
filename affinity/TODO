@@ -1,8 +1,10 @@
 * Start on the write part
-  - Make statistics to start with, don't write yet
   - AmVac csv 40.000.000 -- is it only that column or general problem?
+  - Excel format, problably
+  - csv skip first 3 bytes
 
-* csv skip first 3 bytes
+* Don't forget the few "new" deals in fix.xlsx, deleted in .csv
+
 * skip inputs with new org or deal
 
 * Can we fix "Deal decided"?
