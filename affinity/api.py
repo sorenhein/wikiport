@@ -274,7 +274,8 @@ def get_multi_value(response, field_id, dropdown_map):
     if entry['field_id'] == field_id:
       if res != "":
         res = res + ", "
-      res = res + str(turn_text_into_dropdown(entry['value'], dropdown_map))
+      res = res + entry['value']
+      # res = res + str(turn_text_into_dropdown(entry['value'], dropdown_map))
 
   return res
 

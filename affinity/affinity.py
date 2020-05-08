@@ -69,6 +69,21 @@ ENUM_TO_HEADING = {val: key for key, val in HEADING_TO_ENUM.items()}
 
 CSV_COLUMN_TO_ENUM = [Fields.ListEntryId for i in range(len(Fields))]
 
+CERTAIN_FIXES = {
+  Fields.MIGSector: 1,
+  Fields.Status: 1,
+  Fields.Owners: 1,
+  Fields.Transaction: 1,
+  Fields.FundingRound: 1,
+  Fields.Amount: 1,
+  Fields.PreMoney: 1,
+  Fields.Currency: 1,
+  Fields.Quality: 1,
+  Fields.WikiURL: 1,
+  Fields.SourceType: 1,
+  Fields.SourcedBy: 1,
+  Fields.Reason: 1}
+
 SPECIAL_HEADINGS = {
   'List Entry Id': Fields.ListEntryId,
   'Organization Id': Fields.OrganizationId,
@@ -91,6 +106,13 @@ ASSOCIATED_HEADINGS = {
   Fields.Owners: Fields.OwnersMail,
   Fields.SourcedBy: Fields.SourcedByMail}
 
+NUMERICAL_HEADINGS = {
+  Fields.Status: 1,
+  Fields.Quality: 1,
+  Fields.Owners: 1,
+  Fields.OwnersMail: 1,
+  Fields.SourcedBy: 1,
+  Fields.SourcedByMail: 1}
 
 class Matches(Enum):
   """All the fields expected in the CSV file."""
@@ -173,7 +195,8 @@ def read_csv_file(fname):
   headers = lines[0].split(SEPARATOR)
 
   # Drop the three non-text bytes in front of Excel csv.
-  headers[0] = headers[0][1:]
+  if headers[0][1] == 'L':
+    headers[0] = headers[0][1:]
 
   local_fields = np.empty((len(lines)-1, n+1), dtype=object)
   for i in range(1, len(lines)):
@@ -247,8 +270,19 @@ def turn_line_into_map(line, column_to_enum, dropdown_map):
         res = res + ENUMERATOR + ' '
 
       if local_e in dropdown_map:
-        res = res + \
-          str(api.turn_text_into_dropdown(item, dropdown_map[local_e]))
+        # Remove "1. "
+        item = re.sub("^\d+\. ", "", item)
+        # Turn "1 Interesting" into "1 - Interesting"
+        item = re.sub("^(\d+) ([^-])", r"\1 - \2", item)
+        # item = re.sub("^(\d+)\. (\d) ([^-])", r"\1. \2 - \3", item)
+        # if local_e == Fields.Quality:
+          # print("item", item)
+
+        if local_e in NUMERICAL_HEADINGS:
+          item = api.turn_text_into_dropdown(item, enum_text_to_id[local_e])
+
+        res = res + str(item)
+          # str(api.turn_text_into_dropdown(item, dropdown_map[local_e]))
       else:
         res = res + item
 
@@ -344,23 +378,24 @@ def compare(csv_entry, fetched_fields, my_global_flag, matches):
 
     c = classify_match(cfield, ffield, my_global_flag)
     matches[local_e][c] += 1
+    # if c == Matches.OnlyAffinityLocal or c == Matches.OnlyAffinityGlobal:
+      # print("HERE", cfield, "and", ffield)
 
     if cfield == '' and ffield == '':
       entry_changed[local_e] = 0
-      change_flag = 0
       continue
 
     if str(cfield) == str(ffield):
       diff = ''
       ffield = '='
       entry_changed[local_e] = 0
-      change_flag = 0
-    elif cfield == ffield[0:len(cfield)]:
+    elif ffield != None and cfield != '' and cfield == ffield[0:len(cfield)]:
       # Numerical equality, 1000 vs 1000.0
       diff = ''
       ffield = '='
       entry_changed[local_e] = 0
-      change_flag = 0
+      if c == Matches.OnlyAffinityLocal or c == Matches.OnlyAffinityGlobal:
+        print("HERE", cfield, "and", ffield)
     else:
       diff = MATCH_TO_NAME[c]
       entry_changed[local_e] = 1
@@ -533,18 +568,25 @@ for entry in csv_maps:
   # sys.exit()
 
   for field in json:
+    # print("field", field)
     if not field['field_id'] in field_id_to_enum:
       continue
 
     e = field_id_to_enum[field['field_id']]
     v1, v2 = get_value_from_field(field, e)
 
-    if e in enum_text_to_id:
-      v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
+    # if e in enum_text_to_id:
+      # v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
 
     if e in ASSOCIATED_HEADINGS:
       eprime = ASSOCIATED_HEADINGS[e]
+      # print("Call", eprime, v1, "and", v2)
+      # print("field", field)
+      # print("e", e)
+      v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
       v2 = api.turn_text_into_dropdown(v2, enum_text_to_id[eprime])
+    elif e in NUMERICAL_HEADINGS:
+      v1 = api.turn_text_into_dropdown(v1, enum_text_to_id[e])
 
     if e in fetched:
       # Multi-field.
@@ -556,11 +598,48 @@ for entry in csv_maps:
       if e in PRIMARY_ENUMS:
         fetched[PRIMARY_ENUMS[e]] = str(v2)
 
+      
+
   change_flag, changes_entry, matches = \
     compare(entry, fetched, global_flag, matches)
 
+  # print("change_flag", change_flag)
+  # print("entry", entry)
+  # print("fetched", fetched)
+
   if change_flag == 0:
+    # print("Continuing")
     continue
+
+  # print("Still there")
+
+  for e in CERTAIN_FIXES:
+    # print("e candidate", e)
+    if not e in entry or entry[e] == '':
+      continue
+    if e in fetched and fetched[e] != '':
+      continue
+
+    # print("enum_id_to_text", enum_id_to_text[e])
+
+    fid = enum_to_field_id[e]
+    oid = fetched[Fields.OrganizationId]
+    lid = entry[Fields.ListEntryId]
+    v = entry[e]
+
+    # if e == Fields.Quality:
+      # print("Skipping Quality", v)
+      # continue
+
+    # if e == Fields.Quality and v == "2. 2 - Interesting":
+      # v = 1913257
+
+    print("Trying", e, fid, oid, lid, v)
+    if e == Fields.MIGSector:
+      api.post_specific_field(fid, oid, v)
+    else:
+      api.post_specific_field2(fid, oid, lid, v)
+    # sys.exit()
 
   # changed_json = \
     # make_deal_changes(entry, changes_entry, field_name_to_enum, 
