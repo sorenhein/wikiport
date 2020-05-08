@@ -172,6 +172,9 @@ def read_csv_file(fname):
   headers = np.empty(n+1, dtype=object)
   headers = lines[0].split(SEPARATOR)
 
+  # Drop the three non-text bytes in front of Excel csv.
+  headers[0] = headers[0][1:]
+
   local_fields = np.empty((len(lines)-1, n+1), dtype=object)
   for i in range(1, len(lines)):
     s = lines[i].count(SEPARATOR)
@@ -348,6 +351,12 @@ def compare(csv_entry, fetched_fields, my_global_flag, matches):
       continue
 
     if str(cfield) == str(ffield):
+      diff = ''
+      ffield = '='
+      entry_changed[local_e] = 0
+      change_flag = 0
+    elif cfield == ffield[0:len(cfield)]:
+      # Numerical equality, 1000 vs 1000.0
       diff = ''
       ffield = '='
       entry_changed[local_e] = 0
