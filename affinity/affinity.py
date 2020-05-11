@@ -147,7 +147,8 @@ MIG_MAILS = {
   'sh@mig.ag',
   'kf@mig.ag',
   'info@mig.ag',
-  'businessplan@mig.ag'}
+  'businessplan@mig.ag',
+  'info@hmw.ag'}
 
 # My Excel is German.
 SEPARATOR = ';'
@@ -351,7 +352,9 @@ def classify_match(csv_field, aff_field, my_global_flag):
     else:
       e = Matches.OnlyCSVLocal
   elif str(csv_field) == str(aff_field):
-      e = Matches.BothSame
+    e = Matches.BothSame
+  elif aff_field != None and csv_field != '' and csv_field == aff_field[0:len(csv_field)]:
+    e = Matches.BothSame
   elif my_global_flag == 1:
     e = Matches.BothDiffGlobal
   else:
@@ -385,17 +388,10 @@ def compare(csv_entry, fetched_fields, my_global_flag, matches):
       entry_changed[local_e] = 0
       continue
 
-    if str(cfield) == str(ffield):
+    if c == Matches.BothSame:
       diff = ''
       ffield = '='
       entry_changed[local_e] = 0
-    elif ffield != None and cfield != '' and cfield == ffield[0:len(cfield)]:
-      # Numerical equality, 1000 vs 1000.0
-      diff = ''
-      ffield = '='
-      entry_changed[local_e] = 0
-      if c == Matches.OnlyAffinityLocal or c == Matches.OnlyAffinityGlobal:
-        print("HERE", cfield, "and", ffield)
     else:
       diff = MATCH_TO_NAME[c]
       entry_changed[local_e] = 1
@@ -548,8 +544,17 @@ for entry in csv_maps:
     api.get_multi_value(json, enum_to_field_id[Fields.MIGSector],
                         enum_text_to_id[Fields.MIGSector])
   
-  fetched[Fields.WikiURL] = \
+  fetched[Fields.WikiURL], id = \
     api.get_simple_value(json, enum_to_field_id[Fields.WikiURL]);
+
+  # if entry[Fields.WikiURL] != '' and \
+        # fetched[Fields.WikiURL] != '' and \
+        # entry[Fields.WikiURL] != fetched[Fields.WikiURL]:
+    # Go with the csv.
+    # TODO Doesn't work for some reason.
+    # print("Would try WikiURL", id, entry[Fields.WikiURL])
+    # api.put_specific_field(id, entry[Fields.WikiURL])
+
 
   fetched[Fields.ListEntryId] = entry[Fields.ListEntryId]
   fetched[Fields.OrganizationId] = entry[Fields.OrganizationId]
@@ -598,7 +603,12 @@ for entry in csv_maps:
       if e in PRIMARY_ENUMS:
         fetched[PRIMARY_ENUMS[e]] = str(v2)
 
-      
+    # if Fields.Status in entry and Fields.Status in fetched and \
+       # entry[Fields.Status] != '' and fetched[Fields.Status] != '' and \
+       # entry[Fields.Status] != fetched[Fields.Status]:
+      # Go with the csv.
+      # print("Would try Status", field['id'], entry[Fields.Status])
+      # api.put_specific_field(field['id'], entry[Fields.Status])
 
   change_flag, changes_entry, matches = \
     compare(entry, fetched, global_flag, matches)
@@ -611,10 +621,14 @@ for entry in csv_maps:
     # print("Continuing")
     continue
 
-  # print("Still there")
-
   for e in CERTAIN_FIXES:
     # print("e candidate", e)
+
+    fid = enum_to_field_id[e]
+    oid = fetched[Fields.OrganizationId]
+    lid = entry[Fields.ListEntryId]
+    v = entry[e]
+
     if not e in entry or entry[e] == '':
       continue
     if e in fetched and fetched[e] != '':
@@ -622,10 +636,6 @@ for entry in csv_maps:
 
     # print("enum_id_to_text", enum_id_to_text[e])
 
-    fid = enum_to_field_id[e]
-    oid = fetched[Fields.OrganizationId]
-    lid = entry[Fields.ListEntryId]
-    v = entry[e]
 
     # if e == Fields.Quality:
       # print("Skipping Quality", v)

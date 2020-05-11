@@ -31,7 +31,7 @@ NAMES_FILE = 'names.txt'
 def err_msg(response, text):
   """Common code for error message."""
   if response.status_code != 200:
-    print("Affinity get error code", response.status_code)
+    print("Affinity error code", response.status_code)
     print("Source:", text)
     print("Response", response)
     sys.exit()
@@ -263,7 +263,7 @@ def get_simple_value(response, field_id):
   """Gets a simple value."""
   for entry in response:
     if entry['field_id'] == field_id:
-      return entry['value']
+      return entry['value'], entry['id']
   return ''
   
 
@@ -295,7 +295,7 @@ def dump_json(name, json_object):
 
 def put_specific_field(field_value_id, value):
   """Put the changes."""
-  put_url(AFFINITY_BASE + 'field-values/' + field_value_id, value)
+  put_url(AFFINITY_BASE + 'field-values/' + str(field_value_id), value)
 
 
 def post_specific_field(field_id, entity_id, value):
