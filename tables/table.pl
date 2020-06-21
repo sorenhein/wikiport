@@ -3,6 +3,45 @@
 use strict;
 use warnings;
 
+use constant
+{
+  NUMBER => 0,
+  DATE_IN => 1,
+  COMPANY => 2,
+  URL => 3,
+  CONTACT => 4,
+  SECTOR => 5,
+  DESCRIPTION => 6,
+  COMMENT => 7,
+  STATUS => 8,
+  ASSESSMENT => 9,
+  WIKI_LINK => 10,
+  SOURCE => 11,
+  OWNER => 12,
+  FILE_MONTH => 13,
+  DATE_MONTH =>  14
+};
+
+my @header_names =
+[
+  'Number',
+  'Date',
+  'Company',
+  'URL',
+  'Contact',
+  'Sector',
+  'Description',
+  'Comment',
+  'Status',
+  'Grade',
+  'Wiki',
+  'Source',
+  'Owner',
+  'File month',
+  'Date month'
+];
+
+
 if ($#ARGV < 0)
 {
   print "Usage: table.pl Prüfung_*.txt > out.txt\n";
@@ -124,38 +163,45 @@ sub read_file
 }
 
 
+sub set_fields
+{
+}
+
+
 sub set_header
 {
   my ($headers_ref, $tag) = @_;
 
-  $headers_ref->{'Nr.#'} = 0;
+  $headers_ref->{'Nr.#'} = NUMBER;
 
-  $headers_ref->{'Eingang'} = 1;
-  $headers_ref->{'Eingangsdatum'} = 1;
+  $headers_ref->{'Eingang'} = DATE_IN;
+  $headers_ref->{'Eingangsdatum'} = DATE_IN;
 
-  $headers_ref->{'Firma/Projektname'} = 2;
+  $headers_ref->{'Firma/Projektname'} = COMPANY;
 
-  $headers_ref->{'WWW'} = 3;
+  $headers_ref->{'WWW'} = URL;
 
-  $headers_ref->{'Ansprechpartner'} = 4;
+  $headers_ref->{'Ansprechpartner'} = CONTACT;
 
-  $headers_ref->{'Sektor'} = 5;
+  $headers_ref->{'Sektor'} = SECTOR;
 
-  $headers_ref->{'Beschreibung'} = 6;
+  $headers_ref->{'Beschreibung'} = DESCRIPTION;
 
-  $headers_ref->{'Kommentar'} = 7;
+  $headers_ref->{'Kommentar'} = COMMENT;
 
-  $headers_ref->{'Status'} = 8;
+  $headers_ref->{'Status'} = STATUS;
 
-  $headers_ref->{'Bewertung'} = 9;
+  $headers_ref->{'Bewertung'} = ASSESSMENT;
 
-  $headers_ref->{'Link'} = 10;
+  $headers_ref->{'Link'} = WIKI_LINK;
 
-  $headers_ref->{'Ursprung'} = 11;
+  $headers_ref->{'Ursprung'} = SOURCE;
 
-  $headers_ref->{'Zust.'} = 12;
+  $headers_ref->{'Zust.'} = OWNER;
 
-  # 13 is file_tag.
+  $headers_ref->{'File month'} = FILE_MONTH;
+
+  $headers_ref->{'Date month'} = DATE_MONTH;
 }
 
 
@@ -189,12 +235,53 @@ sub parse_header_line
 }
 
 
+sub parse_deal_date
+{
+  my $dref = pop;
+  my $d = $dref->[DATE_IN];
+  $d =~ /^\s*(\d\d).(\d\d).(\d\d)\s*$/;
+  my ($day, $month, $year) = ($1, $2, $3);
+
+  if ($year < 5 ||$year > 20)
+  {
+    print "Date $d: Year warning ($year)\n";
+  }
+
+  if ($month < 1 || $month > 12)
+  {
+    print "Date $d: Month warning ($month)\n";
+  }
+
+  if ($day < 1 || $day > 31)
+  {
+    print "Date $d: Day warning ($day)\n";
+  }
+
+  $dref->[DATE_MONTH] = '20' . $year . '-' . $month;
+
+  if ($dref->[DATE_MONTH] ne $dref->[FILE_MONTH])
+  {
+    my $y0 = substr($dref->[FILE_MONTH], 0, 4);
+    my $m0 = substr($dref->[FILE_MONTH], 5, 2);
+
+    my $delta = 12 * (2000 + $year - $y0) + $month - $m0;
+    if ($delta < -2 || $delta > 2)
+    {
+      print "Deal: ", $dref->[COMPANY], ": delta ", $delta, "\n";
+      print "Date mismatch warning: $dref->[DATE_MONTH] vs ",
+        $dref->[FILE_MONTH], "\n";
+      # print "$year, $month; $y0, $m0\n";
+    }
+  }
+}
+
+
 sub parse_deal_line
 {
   my ($file_tag, $header_map_ref, $fields_ref, $deals_ref) = @_;
 
   my @deal;
-  $deal[13] = $file_tag;
+  $deal[FILE_MONTH] = $file_tag;
   for my $n (1 .. $#$fields_ref)
   {
     $deal[$header_map_ref->[$n]] = $fields_ref->[$n];
@@ -204,6 +291,8 @@ sub parse_deal_line
   {
     check_deal_number($deals_ref->[-1][0], $deal[0]);
   }
+
+  parse_deal_date(\@deal);
 
   push @$deals_ref, \@deal;
 }
@@ -220,7 +309,7 @@ sub get_deal_count
 sub print_deal
 {
   my $dref = pop;
-  for my $n (0 .. 13)
+  for my $n (0 .. FILE_MONTH)
   {
     printf("%2d\t%s\n", $n, $dref->[$n]);
   }
