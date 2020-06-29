@@ -61,3 +61,7 @@ Copy the relevant files from wiki to affinity.
 perl aff.pl 2020-06-29-Affinity.csv wikireal.txt wpruf.txt > out.txt
 
 This generates some debug output but should look reasonably clean.
+
+2020-06-29
+----------
+A few modifications to the Wiki unspecific list, so the numbers change.
