@@ -1,0 +1,63 @@
+2020-06-29
+----------
+Wiki statistics:
+
+4758 deals with an own Wiki page, at least 330 days from other instances
+     of the same deal
+ 522 deals that are only listed on Prüfung pages, and are at least
+     330 days from other instances of the same deal
+ 232 deals that are doubles,i.e. within 330 days
+ 233 entries that do not qualify as deals
+----
+5745 entries
+
+The double deals are shown in doubles.txt:
+- First entry is the deal number in the Wiki
+- Second entry is the deal number which causes it to be a double
+- Third entry is the number of calendar days between the two
+
+The unspecific entries are shown in unspecific.txt:
+- First entry is the deal number in the Wiki
+- Then follows a brief reason that it's not a deal
+
+Affinity statistics (as of today -- keeps growing):
+
+4758 deals with an own Wiki page (same number as above)
+ 522 deals listed on Prüfung pages (same number as above)
+ 172 deals that only have SharePoint pages, no Wiki pages
+  15 deals that would normally trigger warnings in my scripts,
+     for example because the Affinity deal is too close in time
+     to another Affinity deal (I've been more lenient in allowing
+     this than in the Wiki)
+----
+5467 deals
+
+The 15 deals are shown in aff_exist_txt.
+
+
+The scripts are run as follows.
+
+fetch:
+python3 fetch.py pages.txt
+(fetched files go in data directory)
+
+wiki:
+perl table.pl ../fetch/data/Pr*txt > out.txt
+
+The output file contains a bunch of debugging output and comparisons.
+Copy it to wikireal.txt, and delete everything except the 4758 lines
+(including the header).
+
+Also copy the output file to wpruf.txt, and delete everything except
+the 522 lines (including the header) for the Prüfung deals.
+
+affinity:
+
+In Affinity, do a csv export of the deal list.
+There is a specimen in 2020-06-29-Affinity.csv
+
+Copy the relevant files from wiki to affinity.
+
+perl aff.pl 2020-06-29-Affinity.csv wikireal.txt wpruf.txt > out.txt
+
+This generates some debug output but should look reasonably clean.

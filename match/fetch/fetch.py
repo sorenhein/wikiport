@@ -27,7 +27,6 @@ cookieFile = 'cookies.txt'
 sleepyTime = 12
 
 outDir = "data"
-foundDir = "straydeals"
 missedDir = "notfound"
 
 ### End constants
@@ -88,7 +87,7 @@ for line in lines:
   # ___ signifies a directory (to avoid aliasing).
   finalTag = spaceTag.replace("___", "")
 
-  ofoundfile = outDir + '/' + foundDir + '/' + tag + '.txt'
+  ofoundfile = outDir + '/' + tag + '.txt'
   r = requests.get(baseURL + '/' + finalTag + '?' + action, cookies=cookies)
   print('Read ' + finalTag)
   writeText(outDir, ofoundfile, spaceTag, finalTag, r.text)

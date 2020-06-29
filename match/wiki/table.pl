@@ -55,7 +55,7 @@ my @print_fields =
   DATE_MONTH
 );
 
-my $unspecific = "../parseraw/tmp/partition/unspecific.txt";
+my $unspecific = "../unspecific.txt";
 
 
 if ($#ARGV < 0)
@@ -127,20 +127,35 @@ for my $dref (@deals)
   push @{$deals_by_link{$dref->[WIKI]}}, $dref;
 }
 
-my (@real_deals, @double_deals, @prufung_deals);
+# The Prüfung Wiki deals are special.  Sort them by name, not link.
+my %deals_by_name;
 for my $wiki (sort keys %deals_by_link)
 {
-  # Deals without an own wiki page are not duplicates.
-  if ($wiki =~ /Pr.+fung/)
+  next unless $wiki =~ /Pr.+fung/;
+  my @a = @{$deals_by_link{$wiki}};
+  for my $dref (@a)
   {
-    my @a = @{$deals_by_link{$wiki}};
-    for my $dref (@a)
-    {
-      push @prufung_deals, $dref;
-    }
+    push @{$deals_by_name{$dref->[COMPANY]}}, $dref;
+  }
+}
+
+my (@real_deals, @double_deals, @prufung_deals, @double_deltas);
+
+for my $wiki (sort keys %deals_by_name)
+{
+  my @a = @{$deals_by_name{$wiki}};
+  if ($#a == 0)
+  {
+    push @prufung_deals, $a[0];
     next;
   }
 
+  divide_by_time_gap(\@a, \@prufung_deals, \@double_deals, \@double_deltas);
+}
+
+for my $wiki (sort keys %deals_by_link)
+{
+  next if ($wiki =~ /Pr.+fung/);
   if ($#{$deals_by_link{$wiki}} == 0)
   {
     push @real_deals, $deals_by_link{$wiki}[0];
@@ -148,9 +163,8 @@ for my $wiki (sort keys %deals_by_link)
   }
 
   my @a = @{$deals_by_link{$wiki}};
-  divide_by_time_gap(\@a, \@real_deals, \@double_deals);
+  divide_by_time_gap(\@a, \@real_deals, \@double_deals, \@double_deltas);
 }
-
 
 
 print "\n";
@@ -164,6 +178,10 @@ print_csv(\@prufung_deals);
 print "\n";
 print "Double deals: ", 1+$#double_deals, "\n";
 print_csv(\@double_deals);
+
+print "\n";
+print "Double deltas ", 1+$#double_deltas, "\n";
+print $_ for @double_deltas;
 
 
 sub read_unspecific
@@ -509,7 +527,9 @@ sub print_csv
 
 sub push_right_list
 {
-  my ($dist_list_ref, $double_list_ref, $distinct_flag, $to_push) = @_;
+  my ($dist_list_ref, $double_list_ref, $delta_ref,
+    $distinct_flag, $text, $to_push) = @_;
+
   if ($distinct_flag)
   {
     push @$dist_list_ref, $to_push;
@@ -517,13 +537,14 @@ sub push_right_list
   else
   {
     push @$double_list_ref, $to_push;
+    push @$delta_ref, $text;
   }
 }
 
 
 sub divide_by_time_gap
 {
-  my ($list_ref, $use_ref, $double_ref) = @_;
+  my ($list_ref, $use_ref, $double_ref, $delta_ref) = @_;
 
   for my $dref (@$list_ref)
   {
@@ -538,15 +559,22 @@ sub divide_by_time_gap
   if ($#c == 1)
   {
     # Two deals are easy.
-    my $distinct_flag = ($c[1][16] - $c[0][16] > 330);
-    push_right_list($use_ref, $double_ref, $distinct_flag, \@{$c[1]});
+    my $delta = $c[1][16] - $c[0][16];
+    my $distinct_flag = ($delta > 330);
+
+    my $text = sprintf("%7s %7s %d\n",
+      $c[1][NUMBER], $c[0][NUMBER], $delta);
+
+    push_right_list($use_ref, $double_ref, $delta_ref, 
+      $distinct_flag, $text, \@{$c[1]});
     push @$use_ref, $c[0];
   }
   else
   {
     for (my $n = $#c; $n >= 1; $n--)
     {
-      if ($c[$n][16] - $c[$n-1][16] > 330)
+      my $delta = $c[$n][16] - $c[$n-1][16];
+      if ($delta > 330)
       {
         push @$use_ref, $c[$n];
       }
@@ -560,6 +588,9 @@ sub divide_by_time_gap
       else
       {
         push @$double_ref, $c[$n];
+        my $text = sprintf("%7s %7s %d\n",
+          $c[$n][NUMBER], $c[$n-1][NUMBER], $delta);
+        push @$delta_ref, $text;
       }
     }
     push @$use_ref, $c[0];

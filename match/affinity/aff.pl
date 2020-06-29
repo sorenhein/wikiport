@@ -11,7 +11,7 @@ if ($#ARGV != 2)
 
 # File with Affinity deals to disregard, as there is no matching
 # Wiki deal.  Same company, but too recent.
-my $aff_exist_file = "../parseraw/tmp/partition/aff_exist.txt";
+my $aff_exist_file = "../aff_exist.txt";
 my %aff_excludes;
 read_exclude_file(\%aff_excludes);
 
