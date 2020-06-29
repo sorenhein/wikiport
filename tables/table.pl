@@ -148,28 +148,7 @@ for my $wiki (sort keys %deals_by_link)
   }
 
   my @a = @{$deals_by_link{$wiki}};
-  for my $dref (@a)
-  {
-    my $d = substr($dref->[DATE_IN], 0, 2);
-    my $m = substr($dref->[DATE_IN], 3, 2);
-    my $y = substr($dref->[DATE_IN], 6, 2);
-    $dref->[16] = 365*$y + 30*$m + $d;
-  }
-  my @c = sort {$a->[16] <=> $b->[16]} @a;
-
-  for (my $n = $#c; $n >= 1; $n--)
-  {
-    if ($c[$n][16] - $c[$n-1][16] > 365)
-    {
-      push @real_deals, $c[$n];
-    }
-    else
-    {
-      push @double_deals, $c[$n];
-    }
-  }
-
-  push @real_deals, $c[0];
+  divide_by_time_gap(\@a, \@real_deals, \@double_deals);
 }
 
 
@@ -527,3 +506,62 @@ sub print_csv
   }
 }
 
+
+sub push_right_list
+{
+  my ($dist_list_ref, $double_list_ref, $distinct_flag, $to_push) = @_;
+  if ($distinct_flag)
+  {
+    push @$dist_list_ref, $to_push;
+  }
+  else
+  {
+    push @$double_list_ref, $to_push;
+  }
+}
+
+
+sub divide_by_time_gap
+{
+  my ($list_ref, $use_ref, $double_ref) = @_;
+
+  for my $dref (@$list_ref)
+  {
+    my $d = substr($dref->[DATE_IN], 0, 2);
+    my $m = substr($dref->[DATE_IN], 3, 2);
+    my $y = substr($dref->[DATE_IN], 6, 2);
+    $dref->[16] = 365*$y + 30*$m + $d;
+  }
+  my @c = sort {$a->[16] <=> $b->[16]} @$list_ref;
+
+  # Can be a bit tricky to punch out the smallest number of duplicates.
+  if ($#c == 1)
+  {
+    # Two deals are easy.
+    my $distinct_flag = ($c[1][16] - $c[0][16] > 330);
+    push_right_list($use_ref, $double_ref, $distinct_flag, \@{$c[1]});
+    push @$use_ref, $c[0];
+  }
+  else
+  {
+    for (my $n = $#c; $n >= 1; $n--)
+    {
+      if ($c[$n][16] - $c[$n-1][16] > 330)
+      {
+        push @$use_ref, $c[$n];
+      }
+      elsif ($n >= 2 && 
+            $c[$n][16] - $c[$n-2][16] > 330 &&
+            $c[$n-1][16] - $c[$n-2][16] <= 330)
+      {
+        # Rather than punching out n and n-1, we can just punch out n-1.
+        push @$use_ref, $c[$n];
+      }
+      else
+      {
+        push @$double_ref, $c[$n];
+      }
+    }
+    push @$use_ref, $c[0];
+  }
+}
