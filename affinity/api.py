@@ -117,11 +117,17 @@ def make_cached_file(url, fname):
   lfile.close()
 
 
+def make_cached_org_file():
+  """Make the cached organization file."""
+  make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
+
+
 def make_cached_files(MIG_MAILS):
   """Makes the cached files (lists and fields)."""
   make_cached_file(AFFINITY_BASE + 'lists', LISTS_FILE)
   make_cached_file(AFFINITY_BASE + 'fields', FIELDS_FILE)
-  make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
+  make_cached_org_file()
+  # make_cached_file(AFFINITY_BASE + 'organizations/fields', ORG_FIELDS_FILE)
 
   names = []
   for mail in MIG_MAILS:
@@ -145,6 +151,35 @@ def get_deal_list_id():
 
   print("Deal Flow List not found")
   sys.exit()
+
+
+def get_org_field_maps(heading_to_enum):
+  """Reads the cached organization fields."""
+  with open(ORG_FIELDS_FILE, 'r') as f:
+    fields_list = json.load(f)
+  id_list = ['None'] * len(fields_list)
+
+  field_name_to_enum = {}
+  field_id_to_enum = {}
+  enum_to_field_id = {}
+
+  for field, iid in zip(fields_list, id_list):
+    if not field['name'] in heading_to_enum:
+      continue
+
+    if str(field['list_id']) != iid:
+      continue
+
+    fid = field['id']
+    name = field['name']
+    entry = heading_to_enum[name]
+
+    field_name_to_enum[name] = entry
+    field_id_to_enum[fid] = entry
+    enum_to_field_id[entry] = fid
+
+  return field_name_to_enum, field_id_to_enum, enum_to_field_id
+
 
 
 def get_field_maps(deal_list_id, heading_to_enum):
@@ -264,7 +299,7 @@ def get_simple_value(response, field_id):
   for entry in response:
     if entry['field_id'] == field_id:
       return entry['value'], entry['id']
-  return ''
+  return '', ''
   
 
 def get_multi_value(response, field_id, dropdown_map):
