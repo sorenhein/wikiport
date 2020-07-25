@@ -3,15 +3,18 @@
 use strict;
 use warnings;
 
+# This is derived from match/aff.pl, but it compares comments and
+# perhaps later on descriptions.
+
 if ($#ARGV != 2)
 {
-  print "Usage: aff.pl affinity.csv wiki.csv wpruf.csv\n";
+  print "Usage: aff.pl legacies.csv titled.csv prufung.csv\n";
   exit;
 }
 
 # File with Affinity deals to disregard, as there is no matching
 # Wiki deal.  Same company, but too recent.
-my $aff_exist_file = "../aff_exist";
+my $aff_exist_file = "aff_exist";
 my %aff_excludes;
 read_exclude_file(\%aff_excludes);
 
@@ -37,15 +40,15 @@ while (my $line = <$fh>)
   my @a = split /,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/, $line;
 
   # Turn dd/mm/yyyy into dd.mm.yy
-  my $ad = $a[14]; # Date added
+  my $ad = $a[6]; # Date added
   $ad =~ s/\//./g;
   $ad =~ s/\.20/./;
 
   my @deal;
   $deal[0] = $a[2]; # Name
   $deal[1] = $ad; # Date added
-  $deal[2] = $a[26]; # Wiki
-  $deal[3] = $a[27]; # Sharepoint
+  $deal[2] = $a[26]; # List ID
+  $deal[3] = $a[27]; # Org ID
 
   if (deal_exists(\%aff_excludes, \@deal))
   {

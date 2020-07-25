@@ -162,7 +162,6 @@ def print_dict_dict_stats(dict_dict):
 # Get command-line arguments.
 CSVFile, refresh_flag = get_args()
 print("Got args", CSVFile, refresh_flag)
-
 # Set up the cached files if needed.
 if refresh_flag == 1:
   print("Remaking cache")
@@ -171,11 +170,6 @@ if refresh_flag == 1:
 # Read the cached files to get the field mapping.
 field_name_to_enum, field_id_to_enum, enum_to_field_id = \
   api.get_org_field_maps(HEADING_TO_ENUM)
-
-print("field_name_to_enum", field_name_to_enum)
-print("field_id_to_enum", field_id_to_enum)
-print("enum_to_field_id", enum_to_field_id)
-print("")
 
 # Read the CSV file.
 csv_headings, csv_fields = read_csv_file(CSVFile)
@@ -186,11 +180,20 @@ set_header_maps(csv_headings)
 # Store the CSV lines more semantically.
 csv_maps = turn_csv_into_map(csv_fields)
 
-fid = enum_to_field_id[Fields.Country]
-for entry in csv_maps:
+set_and_identical = 0
+set_and_different = 0
+only_country = 0
+only_location = 0
+none_set = 0
 
-  print("Expect location", entry[Fields.Location])
-  print("Expect country", entry[Fields.Country])
+fid = enum_to_field_id[Fields.Country]
+count = 0
+for entry in csv_maps:
+  count += 1
+
+  print("%4d of %4d: %4d %4d %4d %4d %4d, %s" % (count, len(csv_maps), set_and_identical, set_and_different, only_country, only_location, none_set, entry[Fields.Name]))
+  # print("Expect location", entry[Fields.Location])
+  # print("Expect country", entry[Fields.Country])
 
   fetched = {}
 
@@ -198,34 +201,49 @@ for entry in csv_maps:
   json = api.fetch_organization(entry[Fields.OrganizationId])
   # api.dump_json("org fetched", json)
 
-  fetched[Fields.Location], id = \
+  location, id = \
     api.get_simple_value(json, enum_to_field_id[Fields.Location]);
 
-  fetched[Fields.Country], id = \
+  country, id = \
     api.get_simple_value(json, enum_to_field_id[Fields.Country]);
 
-  print("Fetched", fetched[Fields.Location], fetched[Fields.Country])
+  # print("Fetched", fetched[Fields.Location], fetched[Fields.Country])
 
   location_set = True
-  if fetched[Fields.Location] == '':
+  if location == '':
     location_set = False
 
   country_set = True
-  if fetched[Fields.Country] == '':
+  if country == '':
     country_set = False
 
+  # if location_set:
+    # print("Got location", location)
+    # print("  in", location['country'])
+  # else:
+    # print("Got no location")
+
   if location_set:
-    print("Got location", fetched[Fields.Location])
-    print("  in", fetched[Fields.Location]['country'])
+    if country_set:
+      if location['country'] == country:
+        set_and_identical += 1
+      else:
+        set_and_different += 1
+        print("    differ")
+    else:
+      only_location += 1
+      api.post_specific_field(fid, entry[Fields.OrganizationId], location['country'])
+  elif country_set:
+    only_country += 1
+    print("    only country")
   else:
-    print("Got no location")
+    none_set += 1
   
-  if country_set:
-    print("Got country", fetched[Fields.Country])
-  else:
-    print("Got no country")
-    
-  # api.post_specific_field(fid, entry[Fields.OrganizationId], v)
   # sys.exit()
 
+print("%-20s %4d" % ("Set and identical", set_and_identical))
+print("%-20s %4d" % ("Set and different", set_and_different))
+print("%-20s %4d" % ("Only country", only_country))
+print("%-20s %4d" % ("Only location", only_location))
+print("%-20s %4d" % ("none_set", none_set))
 sys.exit()

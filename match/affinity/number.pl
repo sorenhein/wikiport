@@ -3,9 +3,12 @@
 use strict;
 use warnings;
 
+# Establish the Wiki number of matched Affinity deals.
+# Derived from aff.pl
+
 if ($#ARGV != 2)
 {
-  print "Usage: aff.pl affinity.csv wiki.csv wpruf.csv\n";
+  print "Usage: number.pl affinity.csv wiki.csv wpruf.csv\n";
   exit;
 }
 
@@ -46,6 +49,8 @@ while (my $line = <$fh>)
   $deal[1] = $ad; # Date added
   $deal[2] = $a[26]; # Wiki
   $deal[3] = $a[27]; # Sharepoint
+  $deal[4] = $a[0]; # List ID
+  $deal[5] = $a[1]; # Org ID
 
   if (deal_exists(\%aff_excludes, \@deal))
   {
@@ -149,6 +154,8 @@ while ($line = <$fp>)
 close $fp;
 
 
+# List of matches.
+my @number_matches;
 
 for my $w (sort keys %wiki_own)
 {
@@ -195,6 +202,11 @@ for my $w (sort keys %wiki_own)
       if ($aref->[1] eq $wd)
       {
         $found = 1;
+        my @match;
+        $match[0] = $aref->[4]; # List ID
+        $match[1] = $aref->[5]; # Org ID
+        $match[2] = $wref->[3]; # Wiki number
+        push @number_matches, \@match;
         last;
       }
     }
@@ -253,6 +265,11 @@ for my $a (sort keys %aff_pruf)
       if ($wref->[1] eq $ad)
       {
         $found = 1;
+        my @match;
+        $match[0] = $aref->[4]; # List ID
+        $match[1] = $aref->[5]; # Org ID
+        $match[2] = $wref->[3]; # Wiki number
+        push @number_matches, \@match;
         last;
       }
     }
@@ -337,6 +354,10 @@ print "None: ", 1+$#has_none, "\n";
 print "\n";
 print "Has existing wiki skip ", 1+$#has_exist_skip, "\n";
 # print_csv(\@has_exist_skip);
+
+print "\n";
+print "Number matches\n";
+print_csv(\@number_matches);
 
 
 sub read_exclude_file

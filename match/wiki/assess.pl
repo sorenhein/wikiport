@@ -46,15 +46,15 @@ my @header_names =
 my @print_fields =
 (
   NUMBER,
-  COMPANY,
-  DESCRIPTION,
-  COMMENT,
+  # COMPANY,
+  # DESCRIPTION
+  # COMMENT
   # STATUS,
-  # ASSESSMENT,
-  WIKI,
-  DATE_IN,
-  FILE_MONTH,
-  DATE_MONTH
+  ASSESSMENT
+  # WIKI,
+  # DATE_IN,
+  # FILE_MONTH,
+  # DATE_MONTH
 );
 
 my $unspecific = "../unspecific";
@@ -78,7 +78,6 @@ set_seen(\%seen);
 my %headers;
 set_header(\%headers);
 
-my %tag_histo;
 my @deals;
 
 for my $file (@ARGV)
@@ -96,95 +95,66 @@ for my $file (@ARGV)
   my $file_tag = '20' . $year_no . '-' . $month_no;
 
   print("Trying $file\n");
-  $tag_histo{$file_tag} = 0;
 
   read_file($file, 
     $file_tag,
     \%unspecifics,
-    \%tag_histo,
     \%headers, 
     \@deals);
-print("NOW $#deals\n");
 }
 
-# Did we use all the unspecific deals?
-for my $k (sort keys %unspecifics)
-{
-  if ($unspecifics{$k} != 2)
-  {
-    print "Odd unspecific deal: $k\n";
-  }
-}
+print "Got deals: ", $#deals, "\n";
 
-for my $tag (sort keys %tag_histo)
-{
-  printf("%8s: %d\n", $tag, $tag_histo{$tag});
-}
+my @empties;
 
-# Find deals that are close in time and that have the
-# same Wiki link.
-
-my %deals_by_link;
+print_csv_header();
 for my $dref (@deals)
 {
-  push @{$deals_by_link{$dref->[WIKI]}}, $dref;
-}
-
-# The Prüfung Wiki deals are special.  Sort them by name, not link.
-my %deals_by_name;
-for my $wiki (sort keys %deals_by_link)
-{
-  next unless $wiki =~ /Pr.+fung/;
-  my @a = @{$deals_by_link{$wiki}};
-  for my $dref (@a)
+  if ($dref->[ASSESSMENT] =~ /^\s*$/)
   {
-    push @{$deals_by_name{$dref->[COMPANY]}}, $dref;
-  }
-}
-
-my (@real_deals, @double_deals, @prufung_deals, @double_deltas);
-
-for my $wiki (sort keys %deals_by_name)
-{
-  my @a = @{$deals_by_name{$wiki}};
-  if ($#a == 0)
-  {
-    push @prufung_deals, $a[0];
+    push @empties, $dref;
     next;
   }
 
-  divide_by_time_gap(\@a, \@prufung_deals, \@double_deals, \@double_deltas);
-}
-
-for my $wiki (sort keys %deals_by_link)
-{
-  next if ($wiki =~ /Pr.+fung/);
-  if ($#{$deals_by_link{$wiki}} == 0)
+  my @a;
+  for my $n (@print_fields)
   {
-    push @real_deals, $deals_by_link{$wiki}[0];
-    next;
-  }
+    $dref->[$n] =~ s/^\s+//;
+    $dref->[$n] =~ s/\s+$//;
+    $dref->[$n] =~ s/\[\[//g;
+    $dref->[$n] =~ s/\]\]//g;
 
-  my @a = @{$deals_by_link{$wiki}};
-  divide_by_time_gap(\@a, \@real_deals, \@double_deals, \@double_deltas);
+    if ($dref->[$n] =~ /;/)
+    {
+      $dref->[$n] = '"' . $dref->[$n] . '"';
+    }
+    push @a, $dref->[$n];
+  }
+  print join(';', @a), "\n";
 }
 
-
 print "\n";
-print "Real deals: ", 1+$#real_deals, "\n";
-print_csv(\@real_deals);
+if ($#empties == -1)
+{
+  exit;
+}
 
-print "\n";
-print "Prüfung deals: ", 1+$#prufung_deals, "\n";
-print_csv(\@prufung_deals);
-
-print "\n";
-print "Double deals: ", 1+$#double_deals, "\n";
-print_csv(\@double_deals);
-
-print "\n";
-print "Double deltas ", 1+$#double_deltas, "\n";
-print $_ for @double_deltas;
+print_csv_header();
+for my $dref (@empties)
+{
+  my @a;
+  for my $n (@print_fields)
+  {
+    $dref->[$n] =~ s/^\s+//;
+    $dref->[$n] =~ s/\s+$//;
+    if ($dref->[$n] =~ /;/)
+    {
+      $dref->[$n] = '"' . $dref->[$n] . '"';
+    }
+    push @a, $dref->[$n];
+  }
+  print join(';', @a), "\n";
+}
 
 
 sub read_unspecific
@@ -218,7 +188,7 @@ sub set_seen
 
 sub read_file
 {
-  my ($file, $file_tag, $unspec_ref, $tag_histo_ref, $headers_ref, $deals_ref) = @_;
+  my ($file, $file_tag, $unspec_ref, $headers_ref, $deals_ref) = @_;
 
   open my $fh, "<", $file or die "Cannot open $file $!";
 
@@ -266,7 +236,6 @@ sub read_file
         next;
       }
 
-      $tag_histo_ref->{$file_tag}++;
       # print("Added $line, count now $tag_histo_ref->{$file_tag}\n");
       parse_deal_line($file_tag, $unspec_ref, \@header_map, \@a, $deals_ref);
       
@@ -306,6 +275,7 @@ sub set_header
   $headers_ref->{'Link'} = ATTACH;
 
   $headers_ref->{'Ursprung'} = SOURCE;
+  $headers_ref->{'von wem?'} = SOURCE;
 
   $headers_ref->{'Zust.'} = OWNER;
 
@@ -329,9 +299,9 @@ sub parse_header_line
 
   for my $n (1 .. $#a)
   {
-    my $e = $a[$n];
-    $e =~ /'''\s*(\S*)'''/;
-    my $f = $1;
+    my $f = $a[$n];
+    $f =~ s/^'''//;
+    $f =~ s/'''\s*$//;
     if (! defined $headers_ref->{$f})
     {
       print("Header '$f' not found\n");
@@ -447,15 +417,8 @@ sub parse_deal_line
   # Wiki may have trailing spaces.
   $deal[NUMBER] =~ s/\s+$//;
 
-  if ($#$deals_ref >= 0)
-  {
-    check_deal_number($deals_ref->[-1][0], $deal[NUMBER]);
-  }
-
   if (defined $unspec_ref->{$deal[NUMBER]})
   {
-    print "Skipping unspecific deal ", $deal[COMPANY], ", ", 
-      $deal[NUMBER], "\n";
     $unspec_ref->{$deal[NUMBER]}++;
     return;
   }
@@ -469,42 +432,20 @@ sub parse_deal_line
 }
 
 
-sub get_deal_count
-{
-  my $s = pop;
-  $s =~ s/(\d+)\/\d+\s*$/$1/;
-  return $1;
-}
-
-
-sub check_deal_number
-{
-  my ($old_deal_ref, $new_deal_ref) = @_;
-  my $old_no = get_deal_count($old_deal_ref);
-  my $new_no = get_deal_count($new_deal_ref);
-
-  if ($new_no != 1 && $new_no != $old_no+1)
-  {
-    print("Warning deal numbers $old_no, $new_no\n");
-  }
-}
-
-
 sub print_csv_header
 {
+  my @a;
   for my $n (@print_fields)
-  # for my $n (0 .. DATE_MONTH)
   {
-    printf("%2s;", $header_names[$n]);
+    push @a, $header_names[$n];
   }
-  print "\n";
+  print join(';', @a), "\n";
 }
 
 
 sub print_csv_deal
 {
   my $dref = pop;
-  # for my $n (0 .. DATE_MONTH)
   for my $n (@print_fields)
   {
     if ($dref->[$n] =~ /;/)
@@ -527,75 +468,3 @@ sub print_csv
   }
 }
 
-
-sub push_right_list
-{
-  my ($dist_list_ref, $double_list_ref, $delta_ref,
-    $distinct_flag, $text, $to_push) = @_;
-
-  if ($distinct_flag)
-  {
-    push @$dist_list_ref, $to_push;
-  }
-  else
-  {
-    push @$double_list_ref, $to_push;
-    push @$delta_ref, $text;
-  }
-}
-
-
-sub divide_by_time_gap
-{
-  my ($list_ref, $use_ref, $double_ref, $delta_ref) = @_;
-
-  for my $dref (@$list_ref)
-  {
-    my $d = substr($dref->[DATE_IN], 0, 2);
-    my $m = substr($dref->[DATE_IN], 3, 2);
-    my $y = substr($dref->[DATE_IN], 6, 2);
-    $dref->[16] = 365*$y + 30*$m + $d;
-  }
-  my @c = sort {$a->[16] <=> $b->[16]} @$list_ref;
-
-  # Can be a bit tricky to punch out the smallest number of duplicates.
-  if ($#c == 1)
-  {
-    # Two deals are easy.
-    my $delta = $c[1][16] - $c[0][16];
-    my $distinct_flag = ($delta > 330);
-
-    my $text = sprintf("%7s %7s %d\n",
-      $c[1][NUMBER], $c[0][NUMBER], $delta);
-
-    push_right_list($use_ref, $double_ref, $delta_ref, 
-      $distinct_flag, $text, \@{$c[1]});
-    push @$use_ref, $c[0];
-  }
-  else
-  {
-    for (my $n = $#c; $n >= 1; $n--)
-    {
-      my $delta = $c[$n][16] - $c[$n-1][16];
-      if ($delta > 330)
-      {
-        push @$use_ref, $c[$n];
-      }
-      elsif ($n >= 2 && 
-            $c[$n][16] - $c[$n-2][16] > 330 &&
-            $c[$n-1][16] - $c[$n-2][16] <= 330)
-      {
-        # Rather than punching out n and n-1, we can just punch out n-1.
-        push @$use_ref, $c[$n];
-      }
-      else
-      {
-        push @$double_ref, $c[$n];
-        my $text = sprintf("%7s %7s %d\n",
-          $c[$n][NUMBER], $c[$n-1][NUMBER], $delta);
-        push @$delta_ref, $text;
-      }
-    }
-    push @$use_ref, $c[0];
-  }
-}

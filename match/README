@@ -11,6 +11,15 @@ Wiki statistics:
 ----
 5745 entries
 
+2020-07-06
+----------
+4749
+ 520
+ 234
+ 242
+----
+5745
+
 The double deals are shown in doubles.txt:
 - First entry is the deal number in the Wiki
 - Second entry is the deal number which causes it to be a double
@@ -33,6 +42,17 @@ Affinity statistics (as of today -- keeps growing):
 5467 deals
 
 The 15 deals are shown in aff_exist_txt.
+
+2020-07-06
+----------
+4750 (includes an ImplanData from a 2017 conference that gets
+     a Wiki link, so really 4749)
+ 520
+ 192
+  14
+   1 deal with no Wiki nor Sharepoint (will soon go away, so OK)
+----
+5476
 
 
 The scripts are run as follows.
